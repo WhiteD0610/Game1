@@ -456,7 +456,7 @@ function loadCfg(){
   }catch(e){}
 }
 function saveCfg(touch){
-  if(touch !== false) CFG.updatedAt = Date.now();
+  if(touch !== false) CFG.updatedAt = now();
   try{ LS.set(CFG_KEY, JSON.stringify(CFG)); }catch(e){}
 }
 function applyCfg(){
@@ -528,7 +528,9 @@ try{ images = JSON.parse(LS.get(IMG_KEY) || '{}'); }catch(e){ images = {}; }
    プレイヤー管理（持ち球保存）
    ========================================================= */
 const USERS_KEY = 'slotUsers_v1';
-let DB = {users:{}, current:null, seq:1};
+let clockOffset = 0;                     // サーバー時刻 - 端末時刻
+function now(){ return Date.now() + clockOffset; }
+let DB = {users:{}, current:null, seq:1, deleted:{}};
 const F = ['credit','bank','lend','games','bb','rb','inTotal','outTotal','debts','gmLoans'];
 let GM_BASE = 0.10, GM_STEP = 0.05, GM_MAX = 0.60;
 function gmRate(n){ return Math.min(GM_BASE + GM_STEP*(n===undefined?S.gmLoans:n), GM_MAX); }
@@ -550,7 +552,8 @@ function esc(t){ return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 function loadDB(){
   try{
     const d = JSON.parse(LS.get(USERS_KEY));
-    if(d && d.users) DB = Object.assign({users:{},current:null,seq:1}, d);
+    if(d && d.users) DB = Object.assign({users:{},current:null,seq:1,deleted:{}}, d);
+    if(!DB.deleted) DB.deleted = {};
   }catch(e){}
 }
 function saveDB(){
@@ -558,6 +561,11 @@ function saveDB(){
   try{ LS.set(USERS_KEY, JSON.stringify(DB)); }catch(e){}
 }
 /* 端末が自動生成しただけで、まだ何もしていない仮プレイヤーか */
+/* 一度も遊んでいない空のプレイヤー（古い版が作った物も含む） */
+function isEmptyUser(u){
+  return !!u && !u.games && !u.bank && !u.lend && !u.gmLoans && !u.inTotal && !u.outTotal
+      && !(u.debts && u.debts.length) && (!u.credit || u.credit === 50);
+}
 function isPristine(u){
   return !!u && u.auto === true && !u.games && !u.bank && !u.lend && !u.gmLoans
       && !(u.debts && u.debts.length) && !u.inTotal && !u.outTotal;
@@ -574,7 +582,7 @@ function captureUser(){
   if(sig !== lastSig){
     lastSig = sig;
     if(u.auto && !isPristine(u)) delete u.auto;
-    u.updatedAt = Date.now();
+    u.updatedAt = now();
     syncSoon();                       // 変化があったときだけ即アップロード
   }
 }
@@ -587,10 +595,28 @@ function applyUser(id){
   lastSig = userSig(u);               // 読み込んだ直後は「変化なし」扱い
   renderUsers(); update();
 }
+/* 削除は「消した記録」を残す。これが無いと次の同期でサーバーから復活する。 */
+function deleteUser(id){
+  if(!DB.users[id]) return;
+  DB.deleted[id] = now();
+  delete DB.users[id];
+  if(!Object.keys(DB.users).length){                  // 全員消したら仮プレイヤーを作り直す
+    DB.current = newUser('プレイヤー1', 50);
+    DB.users[DB.current].auto = true;
+  }
+  if(!DB.users[DB.current]) DB.current = Object.keys(DB.users)[0];
+  applyUser(DB.current);
+  saveDB();
+  doSync(true);
+}
+function pruneTombstones(){
+  const cut = now() - 14*24*60*60*1000;
+  Object.keys(DB.deleted).forEach(id=>{ if(DB.deleted[id] < cut) delete DB.deleted[id]; });
+}
 function newUser(name, credit){
   const id = 'u' + (DB.seq++) + '_' + Date.now().toString(36);
   DB.users[id] = {name:name, credit:credit||0, bank:0, lend:0, debts:[], gmLoans:0,
-                  games:0, bb:0, rb:0, inTotal:0, outTotal:0};
+                  games:0, bb:0, rb:0, inTotal:0, outTotal:0, updatedAt:now()};
   return id;
 }
 function renderUsers(){
@@ -919,7 +945,7 @@ function borrowPlayer(lenderId, amount, rate){
   const L = DB.users[lenderId];
   if(!L){ setMsg('相手が見つかりません'); return; }
   if((L.bank||0) < amount){ setMsg(L.name+' さんの持ち球が足りません'); return; }
-  L.bank -= amount; L.updatedAt = Date.now(); syncSoon();
+  L.bank -= amount; L.updatedAt = now(); syncSoon();
   const total = makeDebt(lenderId, amount, rate);
   setMsg(L.name+' から'+amount+'枚 借入（金利'+Math.round(rate*100)+'%）返済額 '+total+'枚', true);
   update();
@@ -935,7 +961,7 @@ function repayDebt(debtId, amount){
   const fromCr = Math.min(S.credit, rest); S.credit -= fromCr; rest -= fromCr;
   S.bank -= rest;
   d.amount -= pay;
-  if(d.from !== 'GM' && DB.users[d.from]){ DB.users[d.from].bank += pay; DB.users[d.from].updatedAt = Date.now(); syncSoon(); }
+  if(d.from !== 'GM' && DB.users[d.from]){ DB.users[d.from].bank += pay; DB.users[d.from].updatedAt = now(); syncSoon(); }
   const nm = creditorName(d);
   if(d.amount <= 0){
     S.debts = S.debts.filter(x=>x.id!==d.id);
@@ -1052,6 +1078,7 @@ document.getElementById('btnNewUser').onclick = ()=>{
       DB.users[id].bank = bank;
       applyUser(id);
       closeModal();
+      doSync(true);                       // 作成をすぐ他端末へ
       setMsg(nm + ' さん、借入ボタンでメダルを調達してください', true);
     }, '追加する');
   const inp = document.getElementById('pName');
@@ -1069,8 +1096,8 @@ document.getElementById('btnRenameUser').onclick = ()=>{
       const el = document.getElementById('pName');
       const nm = (el.value||'').trim().slice(0,16);
       if(!nm){ document.getElementById('pErr').hidden = false; el.focus(); return; }
-      u.name = nm; delete u.auto;
-      renderUsers(); update(); closeModal();
+      u.name = nm; delete u.auto; u.updatedAt = now();
+      renderUsers(); update(); closeModal(); doSync(true);
       setMsg('名前を「'+nm+'」に変更しました');
     }, '変更する');
   const inp = document.getElementById('pName');
@@ -1079,8 +1106,8 @@ document.getElementById('btnRenameUser').onclick = ()=>{
 };
 
 document.getElementById('btnDelUser').onclick = ()=>{
-  if(Object.keys(DB.users).length <= 1){ setMsg('最後のプレイヤーは削除できません'); return; }
   const u = DB.users[DB.current];
+  if(!u) return;
   const d = totalDebt(), l = lentOut();
   openModal('プレイヤー削除 — DELETE',
     '<div class="calc">対象 <b>'+esc(u.name)+'</b><br>持ち球 <b>'+S.bank+'枚</b><br>クレジット <b>'+S.credit+'枚</b></div>'+
@@ -1088,10 +1115,10 @@ document.getElementById('btnDelUser').onclick = ()=>{
     (l ? '<div class="warn">他プレイヤーへの貸付 '+l+'枚が回収不能になります</div>' : '')+
     '<div class="warn">この操作は取り消せません。</div>',
     ()=>{
-      delete DB.users[DB.current];
-      applyUser(Object.keys(DB.users)[0]);
+      const nm = u.name;
+      deleteUser(DB.current);
       closeModal();
-      setMsg('削除しました');
+      setMsg(nm + ' を削除しました');
     }, '削除する');
 };
 
@@ -1102,7 +1129,7 @@ function resetStats(id){
     setLamp(false); setMsg('MAX BET でスタート'); update();
   }else{
     const u = DB.users[id]; if(!u) return;
-    Object.assign(u,{payout:0,inTotal:0,outTotal:0,games:0,bb:0,rb:0, updatedAt:Date.now()});
+    Object.assign(u,{payout:0,inTotal:0,outTotal:0,games:0,bb:0,rb:0, updatedAt:now()});
     saveDB();
   }
 }
@@ -1197,10 +1224,25 @@ async function doSync(force){
   try{
     captureUser();
     const payload = {};
-    Object.keys(DB.users).forEach(id=>{ if(!isPristine(DB.users[id])) payload[id] = DB.users[id]; });
-    const j = await api('sync', {users: payload, cfg: CFG});
+    Object.keys(DB.users).forEach(id=>{ if(!isPristine(DB.users[id]) || id === DB.current) payload[id] = DB.users[id]; });
+    pruneTombstones();
+    const j = await api('sync', {users: payload, cfg: CFG, deleted: DB.deleted});
+    if(j.serverTime) clockOffset = j.serverTime - Date.now();
     let mineChanged = false, otherChanged = false;
+    /* 他端末で削除されたプレイヤーを反映 */
+    const rdel = j.deleted || {};
+    Object.keys(rdel).forEach(id=>{
+      if(!(DB.deleted[id] >= rdel[id])) DB.deleted[id] = rdel[id];
+    });
+    Object.keys(DB.deleted).forEach(id=>{
+      const u = DB.users[id];
+      if(u && (u.updatedAt||0) <= DB.deleted[id]){
+        delete DB.users[id];
+        if(DB.current === id) mineChanged = true; else otherChanged = true;
+      }
+    });
     Object.keys(j.users || {}).forEach(id=>{
+      if(DB.deleted[id] !== undefined && DB.deleted[id] >= ((j.users[id]||{}).updatedAt||0)) return;
       const sv = j.users[id], lo = DB.users[id];
       if(!sv || typeof sv !== 'object') return;
       if(lo && (sv.updatedAt||0) <= (lo.updatedAt||0)) return;   // ローカルの方が新しい
@@ -1210,7 +1252,6 @@ async function doSync(force){
       DB.users[id] = sv;
       if(id === DB.current) mineChanged = true; else otherChanged = true;
     });
-    Object.keys(DB.users).forEach(id=>{ if(j.users && j.users[id] === undefined && j.deleted && j.deleted.indexOf(id)>=0) delete DB.users[id]; });
     if(!DB.users[DB.current]) DB.current = Object.keys(DB.users)[0];
     if(j.cfg && (j.cfg.updatedAt||0) > (CFG.updatedAt||0)){
       const sync = CFG.sync;                 // 接続情報は端末ごとに保持
@@ -1227,6 +1268,12 @@ async function doSync(force){
         }
       });
     }
+    if(!Object.keys(DB.users).length){
+      DB.current = newUser('プレイヤー1', 50);
+      DB.users[DB.current].auto = true;
+      mineChanged = true;
+    }
+    if(!DB.users[DB.current]){ DB.current = Object.keys(DB.users)[0]; mineChanged = true; }
     if(mineChanged){
       const wasIdle = (S.phase === 'idle');
       applyUser(DB.current);
@@ -1371,7 +1418,8 @@ function openAdmin(){
     fld('a_syncPass','合言葉', c.sync.pass, 'text') +
     fld('a_syncUrl','Apps Script ウェブアプリURL（/exec）', c.sync.url, 'text', 'wide') +
   '</div>'+
-  '<div class="btnrow"><button id="aTest">接続テスト</button><button id="aSyncNow">今すぐ同期</button></div>'+
+  '<div class="btnrow"><button id="aTest">接続テスト</button><button id="aSyncNow">今すぐ同期</button>'+
+  '<button id="aWipeRoom" style="color:var(--red)">ルームのデータを全消去</button></div>'+
   '<div class="stat" id="aSyncStat"></div>'+
   '<div class="note">URLはこの端末のブラウザにのみ保存され、ソースコードには含まれません。公開リポジトリにURLや合言葉を書き込まないでください。</div></div>'+
 
@@ -1379,7 +1427,8 @@ function openAdmin(){
   '<div class="note">成績リセット・借金帳消し・削除はこのページからのみ行えます。遊技画面からは操作できません。</div></div>'+
 
   '<div class="asec"><h3>データ</h3>'+
-    '<div class="btnrow"><button id="aResetAll">全プレイヤーの成績をリセット</button></div>'+
+    '<div class="btnrow"><button id="aResetAll">全プレイヤーの成績をリセット</button>'+
+    '<button id="aPurge">未使用の空プレイヤーを削除</button></div>'+
     '<div class="btnrow"><button id="aExport">設定を書き出す</button><button id="aImport">設定を読み込む</button>'+
     '<button id="aPin">パスコード変更</button></div>'+
     '<div class="btnrow"><button id="aDefault">マシン設定を初期値に戻す</button>'+
@@ -1405,11 +1454,36 @@ function openAdmin(){
     catch(e){ st.innerHTML = '<span class="warn">失敗: '+esc(e.message)+'</span>'; CFG.sync = bk; }
   };
   document.getElementById('aSyncNow').onclick = ()=>doSync(true);
+  document.getElementById('aWipeRoom').onclick = ()=>{
+    openModal('ルームのデータを全消去',
+      '<div class="warn">スプレッドシート上のこのルームのプレイヤー情報をすべて削除します。'+
+      '重複した「プレイヤー1」などを整理したいときに使います。<br>'+
+      'この端末のプレイヤーは残るので、必要なら消去後に「今すぐ同期」で登録し直せます。</div>',
+      async ()=>{
+        try{
+          await api('wipe');
+          DB.deleted = {};
+          Object.keys(DB.users).forEach(id=>{ DB.users[id].updatedAt = now(); });
+          saveDB();
+          closeModal();
+          setMsg('ルームのデータを消去しました', true);
+          renderAdminPlayers();
+        }catch(e){ alert('失敗しました: ' + e.message); }
+      }, '消去する');
+  };
   document.getElementById('aResetAll').onclick = ()=>{
     openModal('全プレイヤーの成績リセット',
       '<div class="warn">全員のゲーム数・BIG／REG回数・差枚数を0に戻します。持ち球・クレジット・借金は残ります。</div>',
       ()=>{ Object.keys(DB.users).forEach(resetStats); applyUser(DB.current);
             closeModal(); renderAdminPlayers(); doSync(true); }, 'リセットする');
+  };
+  document.getElementById('aPurge').onclick = ()=>{
+    const targets = Object.keys(DB.users).filter(id=> id !== DB.current && isEmptyUser(DB.users[id]));
+    if(!targets.length){ openModal('未使用の空プレイヤー','<div class="calc">削除できる空のプレイヤーはありません。</div>', null); return; }
+    openModal('未使用の空プレイヤーを削除',
+      '<div class="calc">対象 <b>'+targets.length+'人</b><br>'+targets.map(id=>esc(DB.users[id].name)).join('、')+'</div>'+
+      '<div class="warn">ゲーム数0・持ち球0・借金なしのプレイヤーだけを削除します。他の端末からも消えます。</div>',
+      ()=>{ targets.forEach(deleteUser); closeModal(); renderAdminPlayers(); doSync(true); }, '削除する');
   };
   document.getElementById('aExport').onclick  = exportCfg;
   document.getElementById('aImport').onclick  = ()=>document.getElementById('cfgIn').click();
@@ -1447,11 +1521,11 @@ function renderAdminPlayers(){
       if(b.dataset.act === 'stats'){
         resetStats(id);
       }else if(b.dataset.act === 'clear'){
-        DB.users[id].debts = []; DB.users[id].gmLoans = 0; DB.users[id].updatedAt = Date.now();
+        DB.users[id].debts = []; DB.users[id].gmLoans = 0; DB.users[id].updatedAt = now();
       }else{
-        if(Object.keys(DB.users).length <= 1) return;
-        delete DB.users[id];
-        if(DB.current === id) DB.current = Object.keys(DB.users)[0];
+        deleteUser(id);
+        renderAdminPlayers();
+        return;
       }
       applyUser(DB.current); renderAdminPlayers(); doSync(true);
     };
@@ -1495,7 +1569,7 @@ function saveAdmin(){
     const u = DB.users[inp.dataset.id]; if(!u) return;
     if(inp.dataset.f === 'name') u.name = (inp.value||u.name).slice(0,16);
     else u[inp.dataset.f] = Math.max(0, Math.round(+inp.value)||0);
-    u.updatedAt = Date.now();
+    u.updatedAt = now();
   });
   applyUser(DB.current);
   initSync(); doSync(true);
