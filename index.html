@@ -15,8 +15,8 @@
   --red:#ff3b47;
   --txt:#e8edf5;
   --dim:#78849a;
-  --cell:96px;
-  --cw:112px;
+  --cell:clamp(66px,12vh,132px);
+  --cw:calc(var(--cell)*1.22);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none !important}
@@ -24,15 +24,21 @@ body{
   background:radial-gradient(ellipse at 50% 0%,#1a2130 0%,var(--bg) 60%);
   color:var(--txt);
   font-family:"Segoe UI","Yu Gothic UI",sans-serif;
-  min-height:100vh;
-  display:flex;justify-content:center;align-items:flex-start;
-  padding:24px 16px 60px;
+  min-height:100vh;min-height:100dvh;
+  display:flex;flex-direction:column;
 }
-.wrap{display:flex;gap:20px;align-items:flex-start}
+.main{
+  flex:1 1 auto;min-height:0;
+  display:flex;justify-content:center;align-items:flex-start;
+  gap:14px;padding:12px 14px 10px;overflow:auto;
+}
+.wrap{display:flex;gap:14px;align-items:flex-start;max-height:100%}
 
 /* ===== 筐体 ===== */
 .cabinet{
-  width:520px;
+  width:min(660px,68vw);
+  min-width:360px;
+  flex:0 0 auto;
   background:linear-gradient(180deg,var(--cab) 0%,var(--cab2) 100%);
   border:2px solid var(--edge);
   border-radius:18px;
@@ -42,12 +48,12 @@ body{
 .panel{
   background:linear-gradient(180deg,#1d2534,#121722);
   border-bottom:2px solid var(--edge);
-  padding:18px 20px 22px;
+  padding:12px 18px 14px;
   text-align:center;
   position:relative;
 }
 .brand{
-  font-size:30px;font-weight:800;letter-spacing:.22em;
+  font-size:clamp(22px,3.2vh,36px);font-weight:800;letter-spacing:.22em;
   background:linear-gradient(180deg,#fff2c0,var(--amber) 45%,var(--amber2));
   -webkit-background-clip:text;background-clip:text;color:transparent;
   text-shadow:0 2px 0 rgba(0,0,0,.4);
@@ -56,8 +62,8 @@ body{
 
 /* ===== 告知ランプ ===== */
 .lamp{
-  position:absolute;top:16px;right:20px;
-  width:76px;height:76px;border-radius:50%;
+  position:absolute;top:12px;right:18px;
+  width:clamp(54px,8vh,84px);height:clamp(54px,8vh,84px);border-radius:50%;
   background:radial-gradient(circle at 35% 30%,#3a2a10,#181310);
   border:3px solid #2e3a4d;
   display:flex;align-items:center;justify-content:center;
@@ -74,7 +80,7 @@ body{
 @keyframes pulse{from{filter:brightness(1)}to{filter:brightness(1.35)}}
 
 /* ===== リール ===== */
-.reelarea{padding:22px 20px;background:#05070b;display:flex;justify-content:center;gap:10px;position:relative}
+.reelarea{padding:16px 20px;background:#05070b;display:flex;justify-content:center;gap:12px;position:relative}
 .reel{
   width:var(--cw);height:calc(var(--cell)*3);
   overflow:hidden;position:relative;
@@ -86,20 +92,20 @@ body{
 .cell{
   height:var(--cell);width:100%;
   display:flex;align-items:center;justify-content:center;
-  font-size:46px;font-weight:900;
+  font-size:calc(var(--cell)*0.48);font-weight:900;
   border-bottom:1px solid rgba(0,0,0,.12);
   background-size:cover;background-position:center;
   user-select:none;
 }
 .s-R7{color:#e01b24}
 .s-B7{color:#1668d6}
-.s-BAR{font-size:26px;letter-spacing:.04em;color:#111;
+.s-BAR{font-size:calc(var(--cell)*0.27);letter-spacing:.04em;color:#111;
   background:linear-gradient(180deg,#fff 0 33%,#111 33% 40%,#fff 40% 60%,#111 60% 67%,#fff 67%);
   -webkit-text-fill-color:#111}
-.s-REP{color:#7a3fc4;font-size:40px}
+.s-REP{color:#7a3fc4;font-size:calc(var(--cell)*0.42)}
 .cell.img{font-size:0}
 .payline{
-  position:absolute;left:20px;right:20px;top:calc(22px + var(--cell) + var(--cell)/2 - 1px);
+  position:absolute;left:20px;right:20px;top:calc(16px + var(--cell) + var(--cell)/2 - 1px);
   height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);
   opacity:.75;pointer-events:none;
 }
@@ -109,22 +115,22 @@ body{
 /* ===== 情報表示 ===== */
 .meters{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;background:var(--edge);border-top:2px solid var(--edge)}
 .meter .vl.gr{color:#5ce08a}
-.meter{background:#0c1017;padding:10px 8px;text-align:center}
+.meter{background:#0c1017;padding:7px 6px;text-align:center}
 .meter .lb{font-size:10px;color:var(--dim);letter-spacing:.18em}
-.meter .vl{font-family:"Consolas",monospace;font-size:22px;font-weight:700;color:var(--amber);line-height:1.2}
+.meter .vl{font-family:"Consolas",monospace;font-size:clamp(16px,2.4vh,26px);font-weight:700;color:var(--amber);line-height:1.2}
 .meter .vl.cy{color:var(--cyan)}
 
 .msg{
-  background:#0c1017;padding:12px;text-align:center;
-  font-size:15px;font-weight:700;letter-spacing:.08em;min-height:44px;
+  background:#0c1017;padding:10px 12px;text-align:center;
+  font-size:15px;font-weight:700;letter-spacing:.08em;min-height:38px;
   border-top:1px solid var(--edge);color:var(--txt);
 }
 .msg.hit{color:var(--amber);text-shadow:0 0 12px rgba(255,176,32,.6)}
 
-.controls{padding:16px 20px 22px;background:linear-gradient(180deg,#161c28,#10141d);display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.controls{padding:12px 16px 14px;background:linear-gradient(180deg,#161c28,#10141d);display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 button{
   font-family:inherit;font-weight:700;font-size:13px;letter-spacing:.06em;
-  padding:11px 16px;border-radius:8px;border:1px solid var(--edge);
+  padding:9px 14px;border-radius:8px;border:1px solid var(--edge);
   background:#1e2634;color:var(--txt);cursor:pointer;transition:.12s;
 }
 button:hover{background:#2a3446;border-color:#4a5b78}
@@ -132,14 +138,15 @@ button:active{transform:translateY(1px)}
 button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 button.primary{background:linear-gradient(180deg,#ffcf5a,var(--amber2));color:#3a1a00;border-color:#ffd98a}
 button.primary:hover{filter:brightness(1.1)}
-.hint{padding:0 20px 18px;background:#10141d;text-align:center;font-size:12px;color:var(--dim);line-height:1.7}
+.hint{padding:0 18px 12px;background:#10141d;text-align:center;font-size:11px;color:var(--dim);line-height:1.6}
 kbd{background:#232c3c;border:1px solid #3d4a60;border-bottom-width:2px;border-radius:4px;padding:1px 7px;font-family:monospace;color:var(--txt)}
 
 /* ===== サイドパネル ===== */
-.side{width:300px;display:flex;flex-direction:column;gap:14px}
-.card{background:var(--cab);border:1px solid var(--edge);border-radius:14px;padding:16px}
-.card h2{font-size:12px;letter-spacing:.2em;color:var(--amber);margin-bottom:12px;font-weight:800}
-.row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:5px 0;color:var(--dim)}
+.side{width:290px;flex:0 0 auto;display:flex;flex-direction:column;gap:12px;
+  max-height:calc(100dvh - 108px);overflow-y:auto;padding-right:4px;scrollbar-width:thin}
+.card{background:var(--cab);border:1px solid var(--edge);border-radius:14px;padding:13px 15px;flex:0 0 auto}
+.card h2{font-size:11px;letter-spacing:.2em;color:var(--amber);margin-bottom:9px;font-weight:800}
+.row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;padding:4px 0;color:var(--dim)}
 .row b{color:var(--txt);font-family:Consolas,monospace;font-size:14px}
 select{background:#0c1017;color:var(--txt);border:1px solid var(--edge);border-radius:6px;padding:6px 10px;font-family:inherit;font-size:13px}
 label.sw{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim);cursor:pointer;padding:5px 0}
@@ -212,13 +219,26 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--amber)}
   padding:16px 0 4px;display:flex;gap:10px;justify-content:flex-end}
 .stat{font-size:11px;color:var(--dim);letter-spacing:.1em;padding:4px 0}
 .stat b{color:var(--cyan);font-family:Consolas,monospace}
-.legal{max-width:840px;margin:22px auto 0;font-size:11px;color:var(--dim);line-height:1.9;text-align:center}
-.legal a{color:#8aa0c0}
+.legal{
+  flex:0 0 auto;margin:0;padding:9px 14px 10px;
+  background:#080a0e;border-top:1px solid var(--edge);
+  font-size:10.5px;color:var(--dim);line-height:1.65;text-align:center;
+}
+.legal a{color:#8aa0c0;margin-left:6px}
+.legal br{display:none}
+.legal span{display:inline-block;margin:0 .35em}
+@media (max-width:1040px){
+  .main{padding:10px 8px}
+  .wrap{flex-direction:column;align-items:center}
+  .cabinet{width:min(660px,96vw)}
+  .side{width:min(660px,96vw);max-height:none}
+}
 .syncdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4a5568;margin-right:6px;vertical-align:middle}
 .syncdot.on{background:#5ce08a} .syncdot.err{background:var(--red)} .syncdot.busy{background:var(--amber)}
 </style>
 </head>
 <body>
+<div class="main">
 <div class="wrap">
 
 <!-- ============ 筐体 ============ -->
@@ -319,7 +339,6 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--amber)}
     </div>
     <label class="sw"><input type="checkbox" id="chkAssist" checked>目押しアシスト（ボーナス自動引込）</label>
     <label class="sw"><input type="checkbox" id="chkSound" checked>サウンド</label>
-    <button style="width:100%;margin-top:10px" id="btnReset">データをリセット</button>
   </div>
 
   <div class="card" id="cardImage">
@@ -330,6 +349,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--amber)}
   </div>
 </div>
 
+</div>
 </div>
 
 <div class="admin" id="admin" hidden>
@@ -357,9 +377,9 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--amber)}
 </div>
 
 <footer class="legal">
-  本アプリは娯楽目的の遊技シミュレーターです。実在の遊技機・メーカー・商品・団体とは一切関係ありません。<br>
-  メダル・持ち球・借金・金利はすべてゲーム内の架空の数値であり、現金その他の財物と交換することはできません。<br>
-  実際の金銭・財物を賭ける用途には使用しないでください。18歳以上の方を対象としています。<br>
+  <span>本アプリは娯楽目的の遊技シミュレーターです。実在の遊技機・メーカー・商品・団体とは一切関係ありません。</span>
+  <span>メダル・持ち球・借金・金利はすべてゲーム内の架空の数値であり、現金その他の財物と交換することはできません。</span>
+  <span>実際の金銭・財物を賭ける用途には使用しないでください。18歳以上の方を対象としています。</span>
   <a href="#" id="lkTerms">免責事項・ライセンス</a>
 </footer>
 
@@ -988,7 +1008,6 @@ document.getElementById('btnNewUser').onclick = ()=>{
       '<input type="text" id="pName" maxlength="16" placeholder="なまえ" autocomplete="off"></div>'+
     '<div class="fld"><label>スタート持ち球（枚）</label>'+
       '<input type="number" id="pBank" value="'+CFG.startBank+'" min="0" step="10"></div>'+
-    '<div class="note">プレイヤー名に administrator と入力すると管理者ページを開きます。</div>'+
     '<div class="warn" id="pErr" hidden>名前を入力してください</div>',
     ()=>{
       const el = document.getElementById('pName');
@@ -1044,16 +1063,17 @@ document.getElementById('btnDelUser').onclick = ()=>{
     }, '削除する');
 };
 
-document.getElementById('btnReset').onclick = ()=>{
-  openModal('成績リセット — RESET',
-    '<div class="calc">対象 <b>'+esc(DB.users[DB.current].name)+'</b><br>総ゲーム数 <b>'+S.games+'</b></div>'+
-    '<div class="warn">ゲーム数・BIG／REG回数・差枚数を0に戻します。持ち球・クレジット・借金はそのまま残ります。</div>',
-    ()=>{
-      Object.assign(S,{payout:0,inTotal:0,outTotal:0,games:0,bb:0,rb:0,
-        flagBonus:null,flagBonusSym:null,flagSmall:null,lampPending:false,replay:false});
-      setLamp(false); closeModal(); setMsg('MAX BET でスタート'); update();
-    }, 'リセットする');
-};
+function resetStats(id){
+  if(id === DB.current){
+    Object.assign(S,{payout:0,inTotal:0,outTotal:0,games:0,bb:0,rb:0,
+      flagBonus:null,flagBonusSym:null,flagSmall:null,lampPending:false,replay:false});
+    setLamp(false); setMsg('MAX BET でスタート'); update();
+  }else{
+    const u = DB.users[id]; if(!u) return;
+    Object.assign(u,{payout:0,inTotal:0,outTotal:0,games:0,bb:0,rb:0, updatedAt:Date.now()});
+    saveDB();
+  }
+}
 
 document.getElementById('selSetting').onchange = (e)=>{
   if(CFG.settingUI !== 'edit'){ e.target.value = String(CFG.setting); return; }
@@ -1289,9 +1309,11 @@ function openAdmin(){
   '<div class="stat" id="aSyncStat"></div>'+
   '<div class="note">URLはこの端末のブラウザにのみ保存され、ソースコードには含まれません。公開リポジトリにURLや合言葉を書き込まないでください。</div></div>'+
 
-  '<div class="asec"><h3>プレイヤー管理</h3><div id="aPlayers"></div></div>'+
+  '<div class="asec"><h3>プレイヤー管理</h3><div id="aPlayers"></div>'+
+  '<div class="note">成績リセット・借金帳消し・削除はこのページからのみ行えます。遊技画面からは操作できません。</div></div>'+
 
   '<div class="asec"><h3>データ</h3>'+
+    '<div class="btnrow"><button id="aResetAll">全プレイヤーの成績をリセット</button></div>'+
     '<div class="btnrow"><button id="aExport">設定を書き出す</button><button id="aImport">設定を読み込む</button>'+
     '<button id="aPin">パスコード変更</button></div>'+
     '<div class="btnrow"><button id="aDefault">マシン設定を初期値に戻す</button>'+
@@ -1317,6 +1339,12 @@ function openAdmin(){
     catch(e){ st.innerHTML = '<span class="warn">失敗: '+esc(e.message)+'</span>'; CFG.sync = bk; }
   };
   document.getElementById('aSyncNow').onclick = ()=>doSync(true);
+  document.getElementById('aResetAll').onclick = ()=>{
+    openModal('全プレイヤーの成績リセット',
+      '<div class="warn">全員のゲーム数・BIG／REG回数・差枚数を0に戻します。持ち球・クレジット・借金は残ります。</div>',
+      ()=>{ Object.keys(DB.users).forEach(resetStats); applyUser(DB.current);
+            closeModal(); renderAdminPlayers(); doSync(true); }, 'リセットする');
+  };
   document.getElementById('aExport').onclick  = exportCfg;
   document.getElementById('aImport').onclick  = ()=>document.getElementById('cfgIn').click();
   document.getElementById('aPin').onclick     = ()=>{ LS.del(PIN_KEY); closeAdmin(); openAdminAuth(); };
@@ -1343,13 +1371,16 @@ function renderAdminPlayers(){
         '<td><input type="number" data-f="bank" data-id="'+id+'" value="'+(u.bank||0)+'"></td>'+
         '<td><input type="number" data-f="credit" data-id="'+id+'" value="'+(u.credit||0)+'"></td>'+
         '<td>'+debt+'枚</td>'+
-        '<td><button data-act="clear" data-id="'+id+'">借金帳消し</button> '+
+        '<td><button data-act="stats" data-id="'+id+'">成績リセット</button> '+
+        '<button data-act="clear" data-id="'+id+'">借金帳消し</button> '+
         '<button data-act="del" data-id="'+id+'" style="color:var(--red)">削除</button></td></tr>';
     }).join('')+'</table>';
   document.getElementById('aPlayers').querySelectorAll('button').forEach(b=>{
     b.onclick = ()=>{
       const id = b.dataset.id;
-      if(b.dataset.act === 'clear'){
+      if(b.dataset.act === 'stats'){
+        resetStats(id);
+      }else if(b.dataset.act === 'clear'){
         DB.users[id].debts = []; DB.users[id].gmLoans = 0; DB.users[id].updatedAt = Date.now();
       }else{
         if(Object.keys(DB.users).length <= 1) return;
