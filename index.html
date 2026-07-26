@@ -557,18 +557,34 @@ function saveDB(){
   captureUser();
   try{ LS.set(USERS_KEY, JSON.stringify(DB)); }catch(e){}
 }
+/* 端末が自動生成しただけで、まだ何もしていない仮プレイヤーか */
+function isPristine(u){
+  return !!u && u.auto === true && !u.games && !u.bank && !u.lend && !u.gmLoans
+      && !(u.debts && u.debts.length) && !u.inTotal && !u.outTotal;
+}
+let lastSig = '';
+function userSig(u){
+  return JSON.stringify([u.name].concat(F.map(k=> u[k])));
+}
 function captureUser(){
   const u = DB.users[DB.current];
   if(!u) return;
   F.forEach(k=> u[k] = S[k]);
-  u.updatedAt = Date.now();
+  const sig = userSig(u);
+  if(sig !== lastSig){
+    lastSig = sig;
+    if(u.auto && !isPristine(u)) delete u.auto;
+    u.updatedAt = Date.now();
+    syncSoon();                       // 変化があったときだけ即アップロード
+  }
 }
 function applyUser(id){
   const u = DB.users[id];
   if(!u) return;
   DB.current = id;
-  F.forEach(k=> S[k] = (k==='debts') ? (u.debts||[]) : (u[k] || 0));
+  F.forEach(k=> S[k] = (k==='debts') ? JSON.parse(JSON.stringify(u.debts||[])) : (u[k] || 0));
   S.payout = 0; S.replay = false;
+  lastSig = userSig(u);               // 読み込んだ直後は「変化なし」扱い
   renderUsers(); update();
 }
 function newUser(name, credit){
@@ -593,6 +609,7 @@ function initUsers(){
   loadDB();
   if(!Object.keys(DB.users).length){
     DB.current = newUser('プレイヤー1', 50);
+    DB.users[DB.current].auto = true;      // 端末が自動で作った仮プレイヤー
   }
   if(!DB.users[DB.current]) DB.current = Object.keys(DB.users)[0];
   applyUser(DB.current);
@@ -902,7 +919,7 @@ function borrowPlayer(lenderId, amount, rate){
   const L = DB.users[lenderId];
   if(!L){ setMsg('相手が見つかりません'); return; }
   if((L.bank||0) < amount){ setMsg(L.name+' さんの持ち球が足りません'); return; }
-  L.bank -= amount; L.updatedAt = Date.now();
+  L.bank -= amount; L.updatedAt = Date.now(); syncSoon();
   const total = makeDebt(lenderId, amount, rate);
   setMsg(L.name+' から'+amount+'枚 借入（金利'+Math.round(rate*100)+'%）返済額 '+total+'枚', true);
   update();
@@ -918,7 +935,7 @@ function repayDebt(debtId, amount){
   const fromCr = Math.min(S.credit, rest); S.credit -= fromCr; rest -= fromCr;
   S.bank -= rest;
   d.amount -= pay;
-  if(d.from !== 'GM' && DB.users[d.from]){ DB.users[d.from].bank += pay; DB.users[d.from].updatedAt = Date.now(); }
+  if(d.from !== 'GM' && DB.users[d.from]){ DB.users[d.from].bank += pay; DB.users[d.from].updatedAt = Date.now(); syncSoon(); }
   const nm = creditorName(d);
   if(d.amount <= 0){
     S.debts = S.debts.filter(x=>x.id!==d.id);
@@ -1052,7 +1069,7 @@ document.getElementById('btnRenameUser').onclick = ()=>{
       const el = document.getElementById('pName');
       const nm = (el.value||'').trim().slice(0,16);
       if(!nm){ document.getElementById('pErr').hidden = false; el.focus(); return; }
-      u.name = nm;
+      u.name = nm; delete u.auto;
       renderUsers(); update(); closeModal();
       setMsg('名前を「'+nm+'」に変更しました');
     }, '変更する');
@@ -1167,20 +1184,31 @@ async function api(action, body){
   if(j.error) throw new Error(j.error);
   return j;
 }
+let syncTimer = null;
+function syncSoon(){
+  if(!syncReady()) return;
+  if(syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(()=>{ syncTimer = null; doSync(false); }, 1200);
+}
 async function doSync(force){
   if(!syncReady() || SY.busy) return;
   if(!force && S.phase !== 'idle') return;
   SY.busy = true; setSyncStat('busy');
   try{
     captureUser();
-    const j = await api('sync', {users: DB.users, cfg: CFG});
-    let mineChanged = false;
+    const payload = {};
+    Object.keys(DB.users).forEach(id=>{ if(!isPristine(DB.users[id])) payload[id] = DB.users[id]; });
+    const j = await api('sync', {users: payload, cfg: CFG});
+    let mineChanged = false, otherChanged = false;
     Object.keys(j.users || {}).forEach(id=>{
       const sv = j.users[id], lo = DB.users[id];
-      if(!lo || (sv.updatedAt||0) > (lo.updatedAt||0)){
-        DB.users[id] = sv;
-        if(id === DB.current) mineChanged = true;
+      if(!sv || typeof sv !== 'object') return;
+      if(lo && (sv.updatedAt||0) <= (lo.updatedAt||0)) return;   // ローカルの方が新しい
+      if(lo && userSig(sv) === userSig(lo)){                     // 中身が同じなら時刻だけ合わせる
+        lo.updatedAt = sv.updatedAt; return;
       }
+      DB.users[id] = sv;
+      if(id === DB.current) mineChanged = true; else otherChanged = true;
     });
     Object.keys(DB.users).forEach(id=>{ if(j.users && j.users[id] === undefined && j.deleted && j.deleted.indexOf(id)>=0) delete DB.users[id]; });
     if(!DB.users[DB.current]) DB.current = Object.keys(DB.users)[0];
@@ -1189,13 +1217,36 @@ async function doSync(force){
       CFG = mergeCfg(DEFAULT_CFG, j.cfg); CFG.sync = sync;
       saveCfg(false); applyCfg();
     }
-    if(mineChanged) applyUser(DB.current); else { renderUsers(); update(); }
+    /* 他端末のプレイヤーが見えたら、この端末の空の仮プレイヤーは片付ける */
+    const real = Object.keys(DB.users).filter(id=>!isPristine(DB.users[id]));
+    if(real.length){
+      Object.keys(DB.users).forEach(id=>{
+        if(isPristine(DB.users[id])){
+          delete DB.users[id];
+          if(DB.current === id){ DB.current = real[0]; mineChanged = true; }
+        }
+      });
+    }
+    if(mineChanged){
+      const wasIdle = (S.phase === 'idle');
+      applyUser(DB.current);
+      if(!wasIdle) S.phase = 'spin';
+    }else if(otherChanged){ renderUsers(); update(); }
+    else renderUsers();
     setSyncStat('on', new Date().toLocaleTimeString('ja-JP'));
   }catch(e){
     setSyncStat('err', e.message || '通信失敗');
   }finally{ SY.busy = false; }
 }
+function bindSyncStat(){
+  const el = document.getElementById('syncStat');
+  if(!el) return;
+  el.style.cursor = 'pointer';
+  el.title = 'クリックで今すぐ同期';
+  el.onclick = ()=>{ if(syncReady()) doSync(true); };
+}
 function initSync(){
+  bindSyncStat();
   if(SY.timer) clearInterval(SY.timer);
   if(!syncReady()){ setSyncStat('off'); return; }
   setSyncStat('on', '接続中…');
