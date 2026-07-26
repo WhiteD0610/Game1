@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>PACHISLOT SIMULATOR - A-TYPE</title>
+<style>
+:root{
+  --bg:#0b0d12;
+  --cab:#151a24;
+  --cab2:#0f131b;
+  --edge:#2a3242;
+  --amber:#ffb020;
+  --amber2:#ff7a1a;
+  --cyan:#38d6ff;
+  --red:#ff3b47;
+  --txt:#e8edf5;
+  --dim:#78849a;
+  --cell:96px;
+  --cw:112px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none !important}
+body{
+  background:radial-gradient(ellipse at 50% 0%,#1a2130 0%,var(--bg) 60%);
+  color:var(--txt);
+  font-family:"Segoe UI","Yu Gothic UI",sans-serif;
+  min-height:100vh;
+  display:flex;justify-content:center;align-items:flex-start;
+  padding:24px 16px 60px;
+}
+.wrap{display:flex;gap:20px;align-items:flex-start}
+
+/* ===== 筐体 ===== */
+.cabinet{
+  width:520px;
+  background:linear-gradient(180deg,var(--cab) 0%,var(--cab2) 100%);
+  border:2px solid var(--edge);
+  border-radius:18px;
+  box-shadow:0 0 0 6px #05070b,0 24px 60px rgba(0,0,0,.8);
+  overflow:hidden;
+}
+.panel{
+  background:linear-gradient(180deg,#1d2534,#121722);
+  border-bottom:2px solid var(--edge);
+  padding:18px 20px 22px;
+  text-align:center;
+  position:relative;
+}
+.brand{
+  font-size:30px;font-weight:800;letter-spacing:.22em;
+  background:linear-gradient(180deg,#fff2c0,var(--amber) 45%,var(--amber2));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 2px 0 rgba(0,0,0,.4);
+}
+.sub{font-size:11px;color:var(--dim);letter-spacing:.35em;margin-top:4px}
+
+/* ===== 告知ランプ ===== */
+.lamp{
+  position:absolute;top:16px;right:20px;
+  width:76px;height:76px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#3a2a10,#181310);
+  border:3px solid #2e3a4d;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;letter-spacing:.06em;color:#4a4030;
+  transition:none;
+}
+.lamp.on{
+  background:radial-gradient(circle at 35% 30%,#fffbe8,var(--amber) 40%,var(--amber2));
+  color:#5a2b00;
+  border-color:#ffd98a;
+  box-shadow:0 0 24px 6px rgba(255,176,32,.65),0 0 60px 16px rgba(255,122,26,.35);
+  animation:pulse .55s infinite alternate;
+}
+@keyframes pulse{from{filter:brightness(1)}to{filter:brightness(1.35)}}
+
+/* ===== リール ===== */
+.reelarea{padding:22px 20px;background:#05070b;display:flex;justify-content:center;gap:10px;position:relative}
+.reel{
+  width:var(--cw);height:calc(var(--cell)*3);
+  overflow:hidden;position:relative;
+  background:#e9e6df;
+  border:3px solid #333c4d;border-radius:8px;
+  box-shadow:inset 0 0 24px rgba(0,0,0,.55);
+}
+.strip{position:absolute;top:0;left:0;width:100%;will-change:transform}
+.cell{
+  height:var(--cell);width:100%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:46px;font-weight:900;
+  border-bottom:1px solid rgba(0,0,0,.12);
+  background-size:cover;background-position:center;
+  user-select:none;
+}
+.s-R7{color:#e01b24}
+.s-B7{color:#1668d6}
+.s-BAR{font-size:26px;letter-spacing:.04em;color:#111;
+  background:linear-gradient(180deg,#fff 0 33%,#111 33% 40%,#fff 40% 60%,#111 60% 67%,#fff 67%);
+  -webkit-text-fill-color:#111}
+.s-REP{color:#7a3fc4;font-size:40px}
+.cell.img{font-size:0}
+.payline{
+  position:absolute;left:20px;right:20px;top:calc(22px + var(--cell) + var(--cell)/2 - 1px);
+  height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);
+  opacity:.75;pointer-events:none;
+}
+.flashwin .reel{animation:winflash .3s 4}
+@keyframes winflash{50%{box-shadow:inset 0 0 30px rgba(255,176,32,.9),0 0 20px var(--amber)}}
+
+/* ===== 情報表示 ===== */
+.meters{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;background:var(--edge);border-top:2px solid var(--edge)}
+.meter .vl.gr{color:#5ce08a}
+.meter{background:#0c1017;padding:10px 8px;text-align:center}
+.meter .lb{font-size:10px;color:var(--dim);letter-spacing:.18em}
+.meter .vl{font-family:"Consolas",monospace;font-size:22px;font-weight:700;color:var(--amber);line-height:1.2}
+.meter .vl.cy{color:var(--cyan)}
+
+.msg{
+  background:#0c1017;padding:12px;text-align:center;
+  font-size:15px;font-weight:700;letter-spacing:.08em;min-height:44px;
+  border-top:1px solid var(--edge);color:var(--txt);
+}
+.msg.hit{color:var(--amber);text-shadow:0 0 12px rgba(255,176,32,.6)}
+
+.controls{padding:16px 20px 22px;background:linear-gradient(180deg,#161c28,#10141d);display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+button{
+  font-family:inherit;font-weight:700;font-size:13px;letter-spacing:.06em;
+  padding:11px 16px;border-radius:8px;border:1px solid var(--edge);
+  background:#1e2634;color:var(--txt);cursor:pointer;transition:.12s;
+}
+button:hover{background:#2a3446;border-color:#4a5b78}
+button:active{transform:translateY(1px)}
+button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+button.primary{background:linear-gradient(180deg,#ffcf5a,var(--amber2));color:#3a1a00;border-color:#ffd98a}
+button.primary:hover{filter:brightness(1.1)}
+.hint{padding:0 20px 18px;background:#10141d;text-align:center;font-size:12px;color:var(--dim);line-height:1.7}
+kbd{background:#232c3c;border:1px solid #3d4a60;border-bottom-width:2px;border-radius:4px;padding:1px 7px;font-family:monospace;color:var(--txt)}
+
+/* ===== サイドパネル ===== */
+.side{width:300px;display:flex;flex-direction:column;gap:14px}
+.card{background:var(--cab);border:1px solid var(--edge);border-radius:14px;padding:16px}
+.card h2{font-size:12px;letter-spacing:.2em;color:var(--amber);margin-bottom:12px;font-weight:800}
+.row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:5px 0;color:var(--dim)}
+.row b{color:var(--txt);font-family:Consolas,monospace;font-size:14px}
+select{background:#0c1017;color:var(--txt);border:1px solid var(--edge);border-radius:6px;padding:6px 10px;font-family:inherit;font-size:13px}
+label.sw{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim);cursor:pointer;padding:5px 0}
+input[type=checkbox]{width:16px;height:16px;accent-color:var(--amber)}
+
+.symgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.symslot{text-align:center}
+.symslot .pv{
+  width:100%;aspect-ratio:1;border-radius:8px;border:1px solid var(--edge);
+  background:#e9e6df;display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:900;background-size:cover;background-position:center;
+  cursor:pointer;overflow:hidden;
+}
+.symslot .pv:hover{border-color:var(--amber)}
+.symslot .nm{font-size:10px;color:var(--dim);margin-top:4px}
+.symslot .pv.img{font-size:0}
+.note{font-size:11px;color:var(--dim);line-height:1.6;margin-top:10px}
+.btnrow{display:flex;gap:6px;margin-top:10px}
+.btnrow button{flex:1;padding:9px 4px;font-size:12px}
+#selUser{max-width:150px}
+.who{font-size:11px;color:var(--dim);letter-spacing:.16em;margin-top:6px}
+".who b{color:var(--cyan);font-family:Consolas,monospace}
+.meter .vl.rd{color:var(--red)}
+.row b.rd{color:var(--red)}
+.debtlist{margin-top:8px;display:flex;flex-direction:column;gap:6px;max-height:190px;overflow:auto}
+.debt{background:#0c1017;border:1px solid var(--edge);border-left:3px solid var(--red);
+  border-radius:6px;padding:7px 9px;font-size:12px;color:var(--dim)}
+.debt .dt{display:flex;justify-content:space-between;gap:6px}
+.debt .amt{font-family:Consolas,monospace;color:var(--red);font-weight:700}
+.debt .sm{font-size:10px;margin-top:2px}
+.empty{font-size:11px;color:var(--dim);text-align:center;padding:8px 0}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;
+  align-items:center;justify-content:center;z-index:50;padding:20px}
+.modal[hidden]{display:none}
+.mbox{width:100%;max-width:400px;background:var(--cab);border:1px solid var(--edge);
+  border-radius:14px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.8);max-height:88vh;overflow:auto}
+.mbox h3{font-size:13px;letter-spacing:.2em;color:var(--amber);margin-bottom:14px}
+.fld{margin-bottom:12px}
+.fld label{display:block;font-size:11px;color:var(--dim);letter-spacing:.14em;margin-bottom:5px}
+.fld input,.fld select{width:100%;background:#0c1017;color:var(--txt);border:1px solid var(--edge);
+  border-radius:6px;padding:9px 10px;font-family:inherit;font-size:14px}
+.calc{background:#0c1017;border:1px solid var(--edge);border-radius:8px;padding:10px 12px;
+  font-size:12px;color:var(--dim);line-height:1.9;margin-bottom:12px}
+.calc b{color:var(--txt);font-family:Consolas,monospace;font-size:14px;float:right}
+.calc b.rd{color:var(--red)}
+.warn{font-size:11px;color:var(--red);line-height:1.6;margin-bottom:10px}
+.ok{color:#5ce08a}
+.admin{position:fixed;inset:0;background:#07090d;z-index:80;overflow:auto;padding:24px 16px 60px}
+.admin[hidden]{display:none}
+.abox{max-width:840px;margin:0 auto}
+.ahead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;
+  border-bottom:1px solid var(--edge);padding-bottom:14px}
+.ahead h1{font-size:18px;letter-spacing:.2em;color:var(--red)}
+.ahead .tag{font-size:11px;color:var(--dim);letter-spacing:.16em}
+.asec{background:var(--cab);border:1px solid var(--edge);border-radius:12px;padding:16px;margin-bottom:14px}
+.asec h3{font-size:12px;letter-spacing:.2em;color:var(--amber);margin-bottom:12px}
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.af label{display:block;font-size:10px;color:var(--dim);letter-spacing:.12em;margin-bottom:4px}
+.af input,.af select,.af textarea{width:100%;background:#0c1017;color:var(--txt);
+  border:1px solid var(--edge);border-radius:6px;padding:8px 9px;font-family:inherit;font-size:13px}
+.af textarea{font-family:Consolas,monospace;font-size:11px;line-height:1.7;min-height:74px;resize:vertical}
+.af.wide{grid-column:1/-1}
+.atbl{width:100%;border-collapse:collapse;font-size:12px}
+.atbl th{font-size:10px;color:var(--dim);letter-spacing:.12em;text-align:left;padding:6px 6px;border-bottom:1px solid var(--edge)}
+.atbl td{padding:5px 6px;border-bottom:1px solid #1a2130}
+.atbl input{width:88px;background:#0c1017;color:var(--txt);border:1px solid var(--edge);
+  border-radius:5px;padding:5px 6px;font-family:Consolas,monospace;font-size:12px}
+.atbl button{padding:5px 9px;font-size:11px}
+.abar{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(7,9,13,0),#07090d 30%);
+  padding:16px 0 4px;display:flex;gap:10px;justify-content:flex-end}
+.stat{font-size:11px;color:var(--dim);letter-spacing:.1em;padding:4px 0}
+.stat b{color:var(--cyan);font-family:Consolas,monospace}
+.legal{max-width:840px;margin:22px auto 0;font-size:11px;color:var(--dim);line-height:1.9;text-align:center}
+.legal a{color:#8aa0c0}
+.syncdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4a5568;margin-right:6px;vertical-align:middle}
+.syncdot.on{background:#5ce08a} .syncdot.err{background:var(--red)} .syncdot.busy{background:var(--amber)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============ 筐体 ============ -->
+<div class="cabinet" id="cabinet">
+  <div class="panel">
+    <div class="brand">GYRO SEVEN</div>
+    <div class="sub">A - T Y P E &nbsp; 3 R E E L</div>
+    <div class="who">PLAYER : <b id="whoName">-</b></div>
+    <div class="lamp" id="lamp">CHANCE</div>
+  </div>
+
+  <div class="reelarea">
+    <div class="reel"><div class="strip" id="strip0"></div></div>
+    <div class="reel"><div class="strip" id="strip1"></div></div>
+    <div class="reel"><div class="strip" id="strip2"></div></div>
+    <div class="payline"></div>
+  </div>
+
+  <div class="meters">
+    <div class="meter"><div class="lb">CREDIT</div><div class="vl" id="mCredit">50</div></div>
+    <div class="meter"><div class="lb">PAYOUT</div><div class="vl" id="mPay">0</div></div>
+    <div class="meter"><div class="lb">DIFF</div><div class="vl cy" id="mDiff">0</div></div>
+    <div class="meter"><div class="lb">BANK 持ち球</div><div class="vl gr" id="mBank">0</div></div>
+    <div class="meter"><div class="lb">DEBT 借金</div><div class="vl rd" id="mDebt">0</div></div>
+  </div>
+
+  <div class="msg" id="msg">MAX BET でスタート</div>
+
+  <div class="controls">
+    <button class="primary" id="btnSpin">レバーオン（Enter / Space）</button>
+    <button class="btnStop" data-reel="0">左 1</button>
+    <button class="btnStop" data-reel="1">中 2</button>
+    <button class="btnStop" data-reel="2">右 3</button>
+    <button id="btnBorrow">借 入</button>
+    <button id="btnRepay">返 済</button>
+    <button id="btnRefill">持ち球から補充</button>
+    <button id="btnPayout">払い出し（精算）</button>
+  </div>
+  <div class="hint">
+    <kbd>Enter</kbd> / <kbd>Space</kbd> で回転開始<br>
+    <kbd>Enter</kbd>×3 … 左→中→右の順に停止　｜　<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>（テンキー可） … 左・中・右を好きな順で停止<br>
+    交代するときは「払い出し（精算）」でクレジットを持ち球に移してください<br>
+    メダルは<b>借入</b>で調達 … 金利分が上乗せされた枚数を<b>返済</b>する必要があります
+  </div>
+</div>
+
+<!-- ============ サイド ============ -->
+<div class="side">
+  <div class="card">
+    <h2>PLAYER</h2>
+    <div class="row"><span>プレイヤー</span>
+      <select id="selUser"></select>
+    </div>
+    <div class="row"><span>持ち球</span><b id="dBank">0</b></div>
+    <div class="row"><span>クレジット</span><b id="dCredit">0</b></div>
+    
+    <div class="row"><span>純資産（持球+CR-借金）</span><b id="dNet">0</b></div>
+    <div class="btnrow">
+      <button id="btnNewUser">新規</button>
+      <button id="btnRenameUser">名前変更</button>
+      <button id="btnDelUser">削除</button>
+    </div>
+    <div class="stat" id="syncStat"><span class="syncdot"></span>同期：オフ（この端末のみ）</div>
+    <div class="note">プレイヤーごとに持ち球・クレジット・成績が保存されます。同期を設定すると複数端末で持ち球を共有できます。</div>
+  </div>
+
+  <div class="card">
+    <h2>DEBT 借金</h2>
+    <div class="row"><span>借金残高</span><b class="rd" id="dDebt">0</b></div>
+    <div class="row"><span>他プレイヤーへ貸付中</span><b id="dLent">0</b></div>
+    <div class="row"><span>次回GM金利</span><b id="dGmRate">10%</b></div>
+    <div class="debtlist" id="debtList"></div>
+    <div class="btnrow">
+      <button id="btnBorrow2">借入する</button>
+      <button id="btnRepay2">返済する</button>
+    </div>
+    <div class="note">借入時に金利分を上乗せした額が借金になります。返済は手動のみ。GMは借りるほど金利が上がります。</div>
+  </div>
+
+  <div class="card">
+    <h2>DATA</h2>
+    <div class="row"><span>総ゲーム数</span><b id="dG">0</b></div>
+    <div class="row"><span>BIG</span><b id="dBB">0</b></div>
+    <div class="row"><span>REG</span><b id="dRB">0</b></div>
+    <div class="row odds"><span>BIG確率</span><b id="dPB">-</b></div>
+    <div class="row odds"><span>REG確率</span><b id="dPR">-</b></div>
+    <div class="row odds"><span>合成確率</span><b id="dPT">-</b></div>
+    <div class="row"><span>差枚数</span><b id="dDiff">0</b></div>
+  </div>
+
+  <div class="card" id="cardMachine">
+    <h2>MACHINE</h2>
+    <div class="row" id="rowSetting"><span>設定</span>
+      <select id="selSetting">
+        <option>1</option><option>2</option><option>3</option>
+        <option>4</option><option>5</option><option>6</option>
+      </select>
+    </div>
+    <label class="sw"><input type="checkbox" id="chkAssist" checked>目押しアシスト（ボーナス自動引込）</label>
+    <label class="sw"><input type="checkbox" id="chkSound" checked>サウンド</label>
+    <button style="width:100%;margin-top:10px" id="btnReset">データをリセット</button>
+  </div>
+
+  <div class="card" id="cardImage">
+    <h2>SYMBOL IMAGE</h2>
+    <div class="symgrid" id="symGrid"></div>
+    <button style="width:100%;margin-top:12px" id="btnImgReset">画像を全部もどす</button>
+    <div class="note">枠をクリックすると画像ファイルを選べます。画像はお使いの端末のブラウザ内にのみ保存され、外部には送信されません。<br><span style="color:var(--red)">実在機種の画像やキャラクターなど、権利者の許諾がない画像は設定しないでください。</span></div>
+  </div>
+</div>
+
+</div>
+
+<div class="admin" id="admin" hidden>
+  <div class="abox">
+    <div class="ahead">
+      <div>
+        <h1>ADMINISTRATOR</h1>
+        <div class="tag">MACHINE &amp; PLAYER CONFIGURATION</div>
+      </div>
+      <button id="aClose">遊技画面へ戻る</button>
+    </div>
+    <div id="adminBody"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="mbox">
+    <h3 id="mTitle">TITLE</h3>
+    <div id="mBody"></div>
+    <div class="btnrow">
+      <button id="mOk" class="primary">実行</button>
+      <button id="mCancel">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<footer class="legal">
+  本アプリは娯楽目的の遊技シミュレーターです。実在の遊技機・メーカー・商品・団体とは一切関係ありません。<br>
+  メダル・持ち球・借金・金利はすべてゲーム内の架空の数値であり、現金その他の財物と交換することはできません。<br>
+  実際の金銭・財物を賭ける用途には使用しないでください。18歳以上の方を対象としています。<br>
+  <a href="#" id="lkTerms">免責事項・ライセンス</a>
+</footer>
+
+<input type="file" id="fileIn" accept="image/*" hidden>
+<input type="file" id="cfgIn" accept="application/json,.json" hidden>
+
+<script>
+/* =========================================================
+   ストレージ（プライベートモードや file:// でも落ちないように）
+   ========================================================= */
+const LS = (function(){
+  try{
+    localStorage.setItem('__t','1'); localStorage.removeItem('__t');
+    return {get:k=>localStorage.getItem(k), set:(k,v)=>localStorage.setItem(k,v), del:k=>localStorage.removeItem(k)};
+  }catch(e){
+    const m = {};
+    return {get:k=>(k in m ? m[k] : null), set:(k,v)=>{ m[k] = String(v); }, del:k=>{ delete m[k]; }};
+  }
+})();
+
+/* =========================================================
+   シンボル定義
+   ========================================================= */
+const SYM = {
+  R7 :{label:'7',   name:'赤7'},
+  B7 :{label:'7',   name:'青7'},
+  BAR:{label:'BAR', name:'BAR'},
+  BELL:{label:'🔔', name:'ベル'},
+  CHE:{label:'🍒', name:'チェリー'},
+  PIE:{label:'🃏', name:'ピエロ'},
+  GRA:{label:'🍇', name:'ブドウ'},
+  REP:{label:'↻',  name:'リプレイ'}
+};
+const ORDER = ['R7','B7','BAR','BELL','CHE','PIE','GRA','REP'];
+
+/* =========================================================
+   マシン設定（管理者ページから変更可能／CFG が正）
+   ========================================================= */
+const CFG_KEY = 'slotConfig_v1';
+const DEFAULT_CFG = {
+  brand:'GYRO SEVEN',
+  sub:'A - T Y P E \u00a0 3 R E E L',
+  bet:3, bigPay:252, regPay:96,
+  settings:{1:{big:273,reg:439},2:{big:270,reg:399},3:{big:266,reg:364},
+            4:{big:260,reg:315},5:{big:255,reg:292},6:{big:240,reg:247}},
+  small:[['REP',7.3],['GRA',6.02],['CHE',35],['BELL',1024],['PIE',1024]],
+  pay:{GRA:8, BELL:14, PIE:10, CHE:2},
+  speed:28,
+  strips:null,                       // null なら既定配列
+  gm:{base:0.10, step:0.05, max:0.60},
+  startBank:0, lendUnit:50,
+  setting:1,                         // 現在の設定（1〜6）
+  settingUI:'hidden',                // hidden=表示しない / view=表示のみ / edit=変更可
+  showOdds:true,                     // DATAのBIG確率などを表示するか
+  forceAssist:null,                  // null=自由 / true=常時ON / false=常時OFF
+  allowImageUpload:true,             // 絵柄画像の差し替えを許可するか
+  sync:{enabled:false, url:'', room:'', pass:''},
+  updatedAt:0
+};
+let CFG = JSON.parse(JSON.stringify(DEFAULT_CFG));
+function mergeCfg(base, src){
+  const o = JSON.parse(JSON.stringify(base));
+  Object.keys(src||{}).forEach(k=>{
+    if(src[k] && typeof src[k]==='object' && !Array.isArray(src[k]) && o[k] && typeof o[k]==='object' && !Array.isArray(o[k]))
+      o[k] = mergeCfg(o[k], src[k]);
+    else if(src[k] !== undefined && src[k] !== null) o[k] = src[k];
+  });
+  return o;
+}
+function loadCfg(){
+  try{
+    const d = JSON.parse(LS.get(CFG_KEY));
+    if(d) CFG = mergeCfg(DEFAULT_CFG, d);
+  }catch(e){}
+}
+function saveCfg(touch){
+  if(touch !== false) CFG.updatedAt = Date.now();
+  try{ LS.set(CFG_KEY, JSON.stringify(CFG)); }catch(e){}
+}
+function applyCfg(){
+  SETTINGS = CFG.settings; SMALL = CFG.small; PAY = CFG.pay;
+  BIG_PAY = CFG.bigPay; REG_PAY = CFG.regPay; BET = CFG.bet; SPEED = CFG.speed;
+  if(Array.isArray(CFG.strips) && CFG.strips.length===3 && CFG.strips.every(a=>Array.isArray(a)&&a.length>=3))
+    STRIPS = CFG.strips;
+  else STRIPS = BASE_STRIPS;
+  N = STRIPS[0].length;
+  GM_BASE = CFG.gm.base; GM_STEP = CFG.gm.step; GM_MAX = CFG.gm.max;
+  document.querySelector('.brand').textContent = CFG.brand;
+  document.querySelector('.sub').innerHTML = esc(CFG.sub);
+  document.title = CFG.brand + ' - PACHISLOT SIMULATOR';
+  const selSet = document.getElementById('selSetting');
+  const su = CFG.settingUI;
+  selSet.value = String(Math.min(6, Math.max(1, CFG.setting|0 || 1)));
+  selSet.disabled = (su !== 'edit');
+  document.getElementById('rowSetting').hidden = (su === 'hidden');
+  document.querySelectorAll('.row.odds').forEach(r=>{ r.hidden = !CFG.showOdds; });
+  const chkA = document.getElementById('chkAssist');
+  if(CFG.forceAssist === true){ chkA.checked = true; chkA.disabled = true; }
+  else if(CFG.forceAssist === false){ chkA.checked = false; chkA.disabled = true; }
+  else chkA.disabled = false;
+  document.getElementById('cardImage').hidden = !CFG.allowImageUpload;
+  if(typeof buildStrips === 'function' && document.querySelector('.cell')) buildStrips();
+}
+
+/* リール配列（各21コマ／既定） */
+const BASE_STRIPS = [
+ ['R7','GRA','CHE','REP','BELL','GRA','CHE','REP','BAR','GRA','CHE','REP','GRA','PIE','CHE','REP','B7','GRA','CHE','REP','GRA'],
+ ['GRA','REP','BELL','GRA','R7','REP','GRA','BELL','REP','GRA','BAR','REP','GRA','BELL','REP','GRA','B7','REP','GRA','PIE','REP'],
+ ['REP','GRA','BELL','REP','GRA','R7','REP','GRA','BELL','REP','GRA','BAR','REP','GRA','PIE','REP','GRA','B7','REP','GRA','BELL']
+];
+let STRIPS = BASE_STRIPS;
+let N = 21; const CELL = 96; let SPEED = 28; // コマ/秒
+
+/* 設定別ボーナス確率（分母） */
+let SETTINGS = {
+  1:{big:273,reg:439}, 2:{big:270,reg:399}, 3:{big:266,reg:364},
+  4:{big:260,reg:315}, 5:{big:255,reg:292}, 6:{big:240,reg:247}
+};
+/* 小役（分母） */
+let SMALL = [['REP',7.3],['GRA',6.02],['CHE',35],['BELL',1024],['PIE',1024]];
+let PAY = {GRA:8, BELL:14, PIE:10, CHE:2};
+let BIG_PAY = 252, REG_PAY = 96, BET = 3;
+
+/* =========================================================
+   状態
+   ========================================================= */
+const S = {
+  credit:50, bank:0, lend:0, debts:[], gmLoans:0, payout:0, inTotal:0, outTotal:0,
+  games:0, bb:0, rb:0,
+  phase:'idle',                 // idle | spin | eval
+  flagBonus:null,               // 'BIG' | 'REG'
+  flagBonusSym:null,            // 'R7' | 'B7' | 'BAR'
+  flagSmall:null,
+  lampOn:false, lampPending:false,
+  replay:false,
+  reels:[{r:0,spin:false,stop:null,t0:0,from:0},
+         {r:0,spin:false,stop:null,t0:0,from:0},
+         {r:0,spin:false,stop:null,t0:0,from:0}],
+  stopCount:0, stopped:[]
+};
+let images = {};
+const IMG_KEY = 'slotSymbolImages_v1';
+try{ images = JSON.parse(LS.get(IMG_KEY) || '{}'); }catch(e){ images = {}; }
+
+/* =========================================================
+   プレイヤー管理（持ち球保存）
+   ========================================================= */
+const USERS_KEY = 'slotUsers_v1';
+let DB = {users:{}, current:null, seq:1};
+const F = ['credit','bank','lend','games','bb','rb','inTotal','outTotal','debts','gmLoans'];
+let GM_BASE = 0.10, GM_STEP = 0.05, GM_MAX = 0.60;
+function gmRate(n){ return Math.min(GM_BASE + GM_STEP*(n===undefined?S.gmLoans:n), GM_MAX); }
+function totalDebt(){ return S.debts.reduce((a,d)=>a+d.amount,0); }
+function lentOut(){
+  let t=0;
+  Object.keys(DB.users).forEach(id=>{
+    if(id===DB.current) return;
+    (DB.users[id].debts||[]).forEach(d=>{ if(d.from===DB.current) t+=d.amount; });
+  });
+  return t;
+}
+function creditorName(d){
+  if(d.from==='GM') return 'ゲームマスター';
+  return DB.users[d.from] ? DB.users[d.from].name : '（退場者）';
+}
+function esc(t){ return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function loadDB(){
+  try{
+    const d = JSON.parse(LS.get(USERS_KEY));
+    if(d && d.users) DB = Object.assign({users:{},current:null,seq:1}, d);
+  }catch(e){}
+}
+function saveDB(){
+  captureUser();
+  try{ LS.set(USERS_KEY, JSON.stringify(DB)); }catch(e){}
+}
+function captureUser(){
+  const u = DB.users[DB.current];
+  if(!u) return;
+  F.forEach(k=> u[k] = S[k]);
+  u.updatedAt = Date.now();
+}
+function applyUser(id){
+  const u = DB.users[id];
+  if(!u) return;
+  DB.current = id;
+  F.forEach(k=> S[k] = (k==='debts') ? (u.debts||[]) : (u[k] || 0));
+  S.payout = 0; S.replay = false;
+  renderUsers(); update();
+}
+function newUser(name, credit){
+  const id = 'u' + (DB.seq++) + '_' + Date.now().toString(36);
+  DB.users[id] = {name:name, credit:credit||0, bank:0, lend:0, debts:[], gmLoans:0,
+                  games:0, bb:0, rb:0, inTotal:0, outTotal:0};
+  return id;
+}
+function renderUsers(){
+  const sel = document.getElementById('selUser');
+  sel.innerHTML = '';
+  Object.keys(DB.users).forEach(id=>{
+    const o = document.createElement('option');
+    o.value = id; o.textContent = DB.users[id].name;
+    if(id === DB.current) o.selected = true;
+    sel.appendChild(o);
+  });
+  const cur = DB.users[DB.current];
+  document.getElementById('whoName').textContent = cur ? cur.name : '-';
+}
+function initUsers(){
+  loadDB();
+  if(!Object.keys(DB.users).length){
+    DB.current = newUser('プレイヤー1', 50);
+  }
+  if(!DB.users[DB.current]) DB.current = Object.keys(DB.users)[0];
+  applyUser(DB.current);
+}
+
+/* =========================================================
+   描画
+   ========================================================= */
+const stripEls = [0,1,2].map(i=>document.getElementById('strip'+i));
+
+function buildStrips(){
+  stripEls.forEach((el,i)=>{
+    el.innerHTML='';
+    for(let rep=0; rep<2; rep++){
+      STRIPS[i].forEach(s=>{
+        const d=document.createElement('div');
+        d.className='cell s-'+s;
+        d.dataset.sym=s;
+        d.textContent=SYM[s].label;
+        el.appendChild(d);
+      });
+    }
+  });
+  applyImages();
+}
+function applyImages(){
+  document.querySelectorAll('.cell').forEach(c=>{
+    const s=c.dataset.sym;
+    if(images[s]){ c.style.backgroundImage='url('+images[s]+')'; c.classList.add('img'); }
+    else { c.style.backgroundImage=''; c.classList.remove('img'); }
+  });
+  document.querySelectorAll('.symslot .pv').forEach(p=>{
+    const s=p.dataset.sym;
+    if(images[s]){ p.style.backgroundImage='url('+images[s]+')'; p.classList.add('img'); }
+    else { p.style.backgroundImage=''; p.classList.remove('img'); }
+  });
+}
+function render(){
+  S.reels.forEach((rl,i)=>{
+    const off = ((rl.r % N) + N) % N;
+    stripEls[i].style.transform = 'translateY(' + (-off*CELL) + 'px)';
+  });
+}
+
+/* =========================================================
+   リール制御
+   ========================================================= */
+const midOf = (i,stop)=> STRIPS[i][(stop+1)%N];
+
+function findStop(i, from, target, maxSlip){
+  for(let k=0;k<=maxSlip;k++){
+    if(midOf(i, from+k)===target) return from+k;
+  }
+  return null;
+}
+function findMiss(i, from){
+  for(let k=0;k<=4;k++){
+    const s=from+k, m=midOf(i,s);
+    if(i===0 && m==='CHE') continue;              // 左中段チェリーを回避
+    const line=[0,1,2].map(j=> j===i ? m : S.stopped[j]);
+    if(line.every(Boolean) && line[0]===line[1] && line[1]===line[2]) continue;
+    return s;
+  }
+  return from;
+}
+function decideStop(i, from){
+  const assist = document.getElementById('chkAssist').checked;
+  if(S.flagBonus){
+    const s = findStop(i, from, S.flagBonusSym, assist ? N-1 : 4);
+    if(s!==null) return s;
+  }
+  if(S.flagSmall){
+    const rare = (S.flagSmall==='BELL' || S.flagSmall==='PIE');
+    const s = findStop(i, from, S.flagSmall, (rare && assist) ? N-1 : 4);
+    if(s!==null) return s;
+  }
+  return findMiss(i, from);
+}
+
+/* =========================================================
+   抽選
+   ========================================================= */
+function lottery(){
+  const set = SETTINGS[Math.min(6, Math.max(1, CFG.setting|0 || 1))] || SETTINGS[1];
+  if(!S.flagBonus){
+    const rb = Math.random();
+    if(rb < 1/set.big){
+      S.flagBonus='BIG';
+      S.flagBonusSym = Math.random()<0.5 ? 'R7' : 'B7';
+      S.lampPending = true;
+    }else if(rb < 1/set.big + 1/set.reg){
+      S.flagBonus='REG'; S.flagBonusSym='BAR';
+      S.lampPending = true;
+    }
+  }
+  S.flagSmall=null;
+  let rs = Math.random(), acc = 0;
+  for(const [sym,den] of SMALL){
+    acc += 1/den;
+    if(rs < acc){ S.flagSmall=sym; break; }
+  }
+}
+
+/* =========================================================
+   ゲーム進行
+   ========================================================= */
+function spin(){
+  if(S.phase!=='idle') return;
+  if(!S.replay){
+    if(S.credit < BET){ setMsg('メダルが足りません。貸出ボタンを押してください'); return; }
+    S.credit -= BET; S.inTotal += BET;
+  }
+  S.replay=false;
+  S.payout=0;
+  S.games++;
+  lottery();
+
+  /* 告知タイミング：3割はレバーオン時に点灯 */
+  if(S.lampPending && Math.random()<0.3){ setLamp(true); S.lampPending=false; }
+
+  S.phase='spin'; S.stopCount=0; S.stopped=[];
+  S.reels.forEach(r=>{ r.spin=true; r.stop=null; });
+  setMsg('ボーナス絵柄をねらえ');
+  document.getElementById('cabinet').classList.remove('flashwin');
+  update();
+}
+
+function stopReel(i){
+  if(S.phase!=='spin') return;
+  if(i===undefined || i===null){
+    i = [0,1,2].find(j=>S.reels[j].stop===null);   // Enterは左→中→右の順
+    if(i===undefined) return;
+  }
+  const rl = S.reels[i];
+  if(!rl.spin || rl.stop!==null) return;
+  const from = Math.ceil(rl.r);
+  const stop = decideStop(i, from);
+  rl.stop = stop; rl.from = rl.r; rl.t0 = performance.now();
+  S.stopped[i] = midOf(i, stop);
+  S.stopCount++;
+  beep(520, 0.05);
+}
+
+function evaluate(){
+  const m = S.stopped;
+  let win=0, text='', hit=false;
+
+  if(m[0]===m[1] && m[1]===m[2]){
+    const s=m[0];
+    if(s==='R7'||s==='B7'){ win=BIG_PAY; text='★ BIG BONUS ★  +'+BIG_PAY+'枚'; S.bb++; hit=true; S.flagBonus=null; setLamp(false); }
+    else if(s==='BAR'){ win=REG_PAY; text='★ REG BONUS ★  +'+REG_PAY+'枚'; S.rb++; hit=true; S.flagBonus=null; setLamp(false); }
+    else if(s==='REP'){ S.replay=true; text='REPLAY  再遊技'; }
+    else if(PAY[s]){ win=PAY[s]; text=SYM[s].name+'  +'+win+'枚'; }
+  }
+  if(!win && !S.replay && m[0]==='CHE'){
+    win=PAY.CHE; text='チェリー  +'+win+'枚';
+  }
+  if(!text) text = S.flagBonus ? 'ボーナス絵柄をそろえてください' : '';
+
+  if(win){ S.credit+=win; S.outTotal+=win; S.payout=win; }
+  if(hit){ document.getElementById('cabinet').classList.add('flashwin'); fanfare(); }
+  else if(win) beep(880,0.08);
+
+  /* 告知：第3停止後に点灯（残り7割） */
+  if(S.lampPending){ setLamp(true); S.lampPending=false; }
+
+  setMsg(text || 'MAX BET でスタート', hit);
+  S.phase='idle';
+  update();
+}
+
+/* =========================================================
+   アニメーション
+   ========================================================= */
+let last = performance.now();
+function loop(now){
+  const dt = Math.min((now-last)/1000, 0.05); last = now;
+  let allStopped = true;
+  S.reels.forEach((rl,i)=>{
+    if(!rl.spin) return;
+    if(rl.stop===null){ rl.r += SPEED*dt; allStopped=false; }
+    else{
+      const p = Math.min((now-rl.t0)/140, 1);
+      const e = 1-Math.pow(1-p,3);
+      rl.r = rl.from + (rl.stop-rl.from)*e;
+      if(p>=1){ rl.r = rl.stop; rl.spin=false; }
+      else allStopped=false;
+    }
+  });
+  render();
+  if(S.phase==='spin' && allStopped && S.stopCount>=3){ S.phase='eval'; evaluate(); }
+  requestAnimationFrame(loop);
+}
+
+/* =========================================================
+   UI
+   ========================================================= */
+function setMsg(t, hit){
+  const el=document.getElementById('msg');
+  el.textContent=t; el.classList.toggle('hit', !!hit);
+}
+function setLamp(on){
+  S.lampOn=on;
+  document.getElementById('lamp').classList.toggle('on', on);
+  if(on) beep(1200,0.12);
+}
+function pr(g,c){ return c ? '1/'+(g/c).toFixed(1) : '-'; }
+function update(){
+  const diff = S.outTotal - S.inTotal;
+  const debt = totalDebt(), lent = lentOut();
+  const net  = S.bank + S.credit - debt + lent;
+  document.getElementById('mDebt').textContent    = debt;
+  document.getElementById('dDebt').textContent    = debt;
+  document.getElementById('dLent').textContent    = lent;
+  document.getElementById('dGmRate').textContent  = Math.round(gmRate()*100)+'%';
+  renderDebts();
+  document.getElementById('mBank').textContent   = S.bank;
+  document.getElementById('dBank').textContent   = S.bank;
+  document.getElementById('dCredit').textContent = S.credit;
+  document.getElementById('dNet').textContent    = (net>0?'+':'')+net;
+  document.getElementById('mCredit').textContent=S.credit;
+  document.getElementById('mPay').textContent=S.payout;
+  document.getElementById('mDiff').textContent=(diff>0?'+':'')+diff;
+  document.getElementById('dG').textContent=S.games;
+  document.getElementById('dBB').textContent=S.bb;
+  document.getElementById('dRB').textContent=S.rb;
+  document.getElementById('dPB').textContent=pr(S.games,S.bb);
+  document.getElementById('dPR').textContent=pr(S.games,S.rb);
+  document.getElementById('dPT').textContent=pr(S.games,S.bb+S.rb);
+  document.getElementById('dDiff').textContent=(diff>0?'+':'')+diff;
+  saveDB();
+}
+
+/* キーボード：Enterで開始→3回押して停止 */
+const KEYMAP = {Numpad1:0, Numpad2:1, Numpad3:2, Digit1:0, Digit2:1, Digit3:2};
+document.addEventListener('keydown', e=>{
+  if(!document.getElementById('modal').hidden) return;
+  if(e.key==='Enter'){
+    e.preventDefault();
+    if(S.phase==='idle') spin(); else stopReel();
+  }else if(e.code==='Space'){
+    e.preventDefault();
+    if(S.phase==='idle') spin();
+  }else if(e.code in KEYMAP){
+    e.preventDefault();
+    if(S.phase==='spin') stopReel(KEYMAP[e.code]);
+  }
+});
+document.getElementById('btnSpin').onclick = ()=>{ spin(); document.activeElement.blur(); };
+document.querySelectorAll('.btnStop').forEach(b=>{
+  b.onclick = ()=>{ stopReel(+b.dataset.reel); document.activeElement.blur(); };
+});
+document.getElementById('btnRefill').onclick = ()=>{
+  if(S.bank <= 0){ setMsg('持ち球がありません'); return; }
+  const n = Math.min(CFG.lendUnit, S.bank);
+  S.bank -= n; S.credit += n;
+  setMsg('持ち球から '+n+'枚 補充'); update();
+};
+document.getElementById('btnPayout').onclick = ()=>{
+  if(S.phase !== 'idle'){ setMsg('回転中は精算できません'); return; }
+  if(S.credit <= 0){ setMsg('クレジットがありません'); return; }
+  const n = S.credit;
+  S.bank += n; S.credit = 0;
+  setMsg('払い出し '+n+'枚 → 持ち球 '+S.bank+'枚', true); update();
+};
+
+/* ===== 借金システム ===== */
+function renderDebts(){
+  const el = document.getElementById('debtList');
+  if(!S.debts.length){ el.innerHTML = '<div class="empty">借金はありません</div>'; return; }
+  el.innerHTML = S.debts.map(d=>
+    '<div class="debt"><div class="dt"><span>'+esc(creditorName(d))+'</span>'+
+    '<span class="amt">'+d.amount+'枚</span></div>'+
+    '<div class="sm">借入'+d.orig+'枚 / 金利'+Math.round(d.rate*100)+'% / 返済総額'+d.total+'枚</div></div>'
+  ).join('');
+}
+function makeDebt(from, amount, rate){
+  const total = Math.ceil(amount * (1 + rate));
+  S.debts.push({id:'d'+Date.now().toString(36)+Math.floor(Math.random()*999),
+                from:from, orig:amount, rate:rate, total:total, amount:total});
+  S.credit += amount;
+  return total;
+}
+function borrowGM(amount){
+  const rate = gmRate();
+  const total = makeDebt('GM', amount, rate);
+  S.gmLoans++;
+  setMsg('GMから'+amount+'枚 借入（金利'+Math.round(rate*100)+'%）返済額 '+total+'枚', true);
+  update();
+}
+function borrowPlayer(lenderId, amount, rate){
+  const L = DB.users[lenderId];
+  if(!L){ setMsg('相手が見つかりません'); return; }
+  if((L.bank||0) < amount){ setMsg(L.name+' さんの持ち球が足りません'); return; }
+  L.bank -= amount; L.updatedAt = Date.now();
+  const total = makeDebt(lenderId, amount, rate);
+  setMsg(L.name+' から'+amount+'枚 借入（金利'+Math.round(rate*100)+'%）返済額 '+total+'枚', true);
+  update();
+}
+function repayDebt(debtId, amount){
+  const d = S.debts.find(x=>x.id===debtId);
+  if(!d) return;
+  let pay = Math.min(amount, d.amount);
+  const pool = S.credit + S.bank;
+  if(pool <= 0){ setMsg('返済できる枚数がありません'); return; }
+  pay = Math.min(pay, pool);
+  let rest = pay;
+  const fromCr = Math.min(S.credit, rest); S.credit -= fromCr; rest -= fromCr;
+  S.bank -= rest;
+  d.amount -= pay;
+  if(d.from !== 'GM' && DB.users[d.from]){ DB.users[d.from].bank += pay; DB.users[d.from].updatedAt = Date.now(); }
+  const nm = creditorName(d);
+  if(d.amount <= 0){
+    S.debts = S.debts.filter(x=>x.id!==d.id);
+    setMsg(nm+' への借金を完済しました！', true);
+  }else{
+    setMsg(nm+' へ'+pay+'枚 返済（残り'+d.amount+'枚）');
+  }
+  update();
+}
+
+/* ===== モーダル ===== */
+const modal = document.getElementById('modal');
+let okHandler = null;
+function openModal(title, html, onOk, okLabel){
+  document.getElementById('mTitle').textContent = title;
+  document.getElementById('mBody').innerHTML = html;
+  const ok = document.getElementById('mOk');
+  ok.hidden = !onOk;
+  ok.textContent = okLabel || '実行';
+  okHandler = onOk;
+  modal.hidden = false;
+}
+function closeModal(){ modal.hidden = true; okHandler = null; }
+document.getElementById('mCancel').onclick = closeModal;
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && !modal.hidden){ e.preventDefault(); closeModal(); }
+}, true);
+modal.addEventListener('click', e=>{ if(e.target===modal) closeModal(); });
+document.getElementById('mOk').onclick = ()=>{ if(okHandler) okHandler(); };
+
+function openBorrow(){
+  const others = Object.keys(DB.users).filter(id=>id!==DB.current);
+  const opts = others.map(id=>'<option value="'+id+'">'+esc(DB.users[id].name)+'（持ち球 '+(DB.users[id].bank||0)+'枚）</option>').join('');
+  openModal('借入 — BORROW',
+    '<div class="fld"><label>貸してくれる相手</label><select id="bFrom">'+
+      '<option value="GM">ゲームマスター（金利 '+Math.round(gmRate()*100)+'%）</option>'+opts+'</select></div>'+
+    '<div class="fld"><label>借りる枚数</label><input type="number" id="bAmt" value="50" min="1" step="10"></div>'+
+    '<div class="fld" id="bRateWrap" hidden><label>金利％（貸す人が入力してください）</label>'+
+      '<input type="number" id="bRate" value="20" min="0" max="500" step="5"></div>'+
+    '<div class="calc" id="bCalc"></div>'+
+    '<div class="warn">借入時に金利分が上乗せされ、返済総額が借金として記録されます。GMからの借入は1回ごとに金利が'+Math.round(GM_STEP*100)+'%上昇します（上限'+Math.round(GM_MAX*100)+'%）。</div>',
+    ()=>{
+      const from = document.getElementById('bFrom').value;
+      const amt  = Math.floor(+document.getElementById('bAmt').value);
+      if(!(amt>0)){ return; }
+      if(from==='GM') borrowGM(amt);
+      else borrowPlayer(from, amt, Math.max(0,+document.getElementById('bRate').value)/100);
+      closeModal();
+    }, '借りる');
+
+  const fFrom=document.getElementById('bFrom'), fAmt=document.getElementById('bAmt'),
+        fRate=document.getElementById('bRate'), wrap=document.getElementById('bRateWrap'),
+        calc=document.getElementById('bCalc');
+  function refresh(){
+    const isGM = fFrom.value==='GM';
+    wrap.hidden = isGM;
+    const rate = isGM ? gmRate() : Math.max(0,+fRate.value)/100;
+    const amt = Math.max(0, Math.floor(+fAmt.value)||0);
+    const total = Math.ceil(amt*(1+rate));
+    calc.innerHTML = '受け取る枚数 <b>'+amt+'枚</b><br>金利 <b>'+Math.round(rate*100)+'%</b><br>返済総額 <b class="rd">'+total+'枚</b>';
+  }
+  [fFrom,fAmt,fRate].forEach(el=> el && (el.oninput = el.onchange = refresh));
+  refresh();
+}
+
+function openRepay(){
+  if(!S.debts.length){ setMsg('返済する借金はありません'); return; }
+  const rows = S.debts.map(d=>
+    '<div class="fld"><label>'+esc(creditorName(d))+' — 残り '+d.amount+'枚（金利'+Math.round(d.rate*100)+'%）</label>'+
+    '<div style="display:flex;gap:6px">'+
+      '<input type="number" class="rAmt" data-id="'+d.id+'" value="'+Math.min(d.amount, S.credit+S.bank)+'" min="1" max="'+d.amount+'">'+
+      '<button class="rGo" data-id="'+d.id+'" style="white-space:nowrap">返済</button>'+
+    '</div></div>').join('');
+  openModal('返済 — REPAY',
+    '<div class="calc">クレジット <b>'+S.credit+'枚</b><br>持ち球 <b>'+S.bank+'枚</b><br>借金残高 <b class="rd">'+totalDebt()+'枚</b></div>'+
+    rows+'<div class="warn">クレジットから先に支払い、足りない分を持ち球から充当します。</div>',
+    null);
+  document.getElementById('mBody').querySelectorAll('.rGo').forEach(b=>{
+    b.onclick = ()=>{
+      const inp = document.getElementById('mBody').querySelector('.rAmt[data-id="'+b.dataset.id+'"]');
+      repayDebt(b.dataset.id, Math.floor(+inp.value)||0);
+      closeModal();
+    };
+  });
+}
+document.getElementById('btnBorrow').onclick  = openBorrow;
+document.getElementById('btnBorrow2').onclick = openBorrow;
+document.getElementById('btnRepay').onclick   = openRepay;
+document.getElementById('btnRepay2').onclick  = openRepay;
+
+/* プレイヤー操作 */
+document.getElementById('selUser').onchange = (e)=>{
+  if(S.phase !== 'idle'){ setMsg('回転中は交代できません'); renderUsers(); return; }
+  captureUser();
+  try{ LS.set(USERS_KEY, JSON.stringify(DB)); }catch(err){}
+  applyUser(e.target.value);
+  setMsg(DB.users[DB.current].name + ' に交代しました');
+};
+document.getElementById('btnNewUser').onclick = ()=>{
+  openModal('新規プレイヤー — NEW PLAYER',
+    '<div class="fld"><label>プレイヤー名</label>'+
+      '<input type="text" id="pName" maxlength="16" placeholder="なまえ" autocomplete="off"></div>'+
+    '<div class="fld"><label>スタート持ち球（枚）</label>'+
+      '<input type="number" id="pBank" value="'+CFG.startBank+'" min="0" step="10"></div>'+
+    '<div class="note">プレイヤー名に administrator と入力すると管理者ページを開きます。</div>'+
+    '<div class="warn" id="pErr" hidden>名前を入力してください</div>',
+    ()=>{
+      const el = document.getElementById('pName');
+      const nm = (el.value||'').trim().slice(0,16);
+      if(!nm){ document.getElementById('pErr').hidden = false; el.focus(); return; }
+      if(nm.toLowerCase() === 'administrator'){ closeModal(); openAdminAuth(); return; }
+      const bank = Math.max(0, Math.floor(+document.getElementById('pBank').value)||0);
+      captureUser();
+      const id = newUser(nm, 0);
+      DB.users[id].bank = bank;
+      applyUser(id);
+      closeModal();
+      setMsg(nm + ' さん、借入ボタンでメダルを調達してください', true);
+    }, '追加する');
+  const inp = document.getElementById('pName');
+  inp.focus();
+  inp.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('mOk').click(); } };
+};
+
+document.getElementById('btnRenameUser').onclick = ()=>{
+  const u = DB.users[DB.current]; if(!u) return;
+  openModal('名前の変更 — RENAME',
+    '<div class="fld"><label>プレイヤー名</label>'+
+      '<input type="text" id="pName" maxlength="16" value="'+esc(u.name)+'" autocomplete="off"></div>'+
+    '<div class="warn" id="pErr" hidden>名前を入力してください</div>',
+    ()=>{
+      const el = document.getElementById('pName');
+      const nm = (el.value||'').trim().slice(0,16);
+      if(!nm){ document.getElementById('pErr').hidden = false; el.focus(); return; }
+      u.name = nm;
+      renderUsers(); update(); closeModal();
+      setMsg('名前を「'+nm+'」に変更しました');
+    }, '変更する');
+  const inp = document.getElementById('pName');
+  inp.focus(); inp.select();
+  inp.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('mOk').click(); } };
+};
+
+document.getElementById('btnDelUser').onclick = ()=>{
+  if(Object.keys(DB.users).length <= 1){ setMsg('最後のプレイヤーは削除できません'); return; }
+  const u = DB.users[DB.current];
+  const d = totalDebt(), l = lentOut();
+  openModal('プレイヤー削除 — DELETE',
+    '<div class="calc">対象 <b>'+esc(u.name)+'</b><br>持ち球 <b>'+S.bank+'枚</b><br>クレジット <b>'+S.credit+'枚</b></div>'+
+    (d ? '<div class="warn">未返済の借金 '+d+'枚が消滅します（踏み倒し）</div>' : '')+
+    (l ? '<div class="warn">他プレイヤーへの貸付 '+l+'枚が回収不能になります</div>' : '')+
+    '<div class="warn">この操作は取り消せません。</div>',
+    ()=>{
+      delete DB.users[DB.current];
+      applyUser(Object.keys(DB.users)[0]);
+      closeModal();
+      setMsg('削除しました');
+    }, '削除する');
+};
+
+document.getElementById('btnReset').onclick = ()=>{
+  openModal('成績リセット — RESET',
+    '<div class="calc">対象 <b>'+esc(DB.users[DB.current].name)+'</b><br>総ゲーム数 <b>'+S.games+'</b></div>'+
+    '<div class="warn">ゲーム数・BIG／REG回数・差枚数を0に戻します。持ち球・クレジット・借金はそのまま残ります。</div>',
+    ()=>{
+      Object.assign(S,{payout:0,inTotal:0,outTotal:0,games:0,bb:0,rb:0,
+        flagBonus:null,flagBonusSym:null,flagSmall:null,lampPending:false,replay:false});
+      setLamp(false); closeModal(); setMsg('MAX BET でスタート'); update();
+    }, 'リセットする');
+};
+
+document.getElementById('selSetting').onchange = (e)=>{
+  if(CFG.settingUI !== 'edit'){ e.target.value = String(CFG.setting); return; }
+  CFG.setting = Math.min(6, Math.max(1, +e.target.value || 1));
+  saveCfg(); setMsg('設定' + CFG.setting + ' に変更しました');
+};
+
+/* 絵柄画像の差し替え */
+const grid=document.getElementById('symGrid');
+ORDER.forEach(s=>{
+  const w=document.createElement('div'); w.className='symslot';
+  w.innerHTML='<div class="pv s-'+s+'" data-sym="'+s+'">'+SYM[s].label+'</div><div class="nm">'+SYM[s].name+'</div>';
+  grid.appendChild(w);
+});
+let pickTarget=null;
+const fileIn=document.getElementById('fileIn');
+grid.addEventListener('click', e=>{
+  const pv=e.target.closest('.pv'); if(!pv) return;
+  pickTarget=pv.dataset.sym; fileIn.value=''; fileIn.click();
+});
+fileIn.addEventListener('change', ()=>{
+  const f=fileIn.files[0]; if(!f||!pickTarget) return;
+  const fr=new FileReader();
+  fr.onload=()=>{
+    images[pickTarget]=fr.result;
+    try{ LS.set(IMG_KEY, JSON.stringify(images)); }
+    catch(err){ setMsg('画像が大きすぎて保存できません（今回だけ有効）'); }
+    applyImages();
+  };
+  fr.readAsDataURL(f);
+});
+document.getElementById('btnImgReset').onclick=()=>{
+  images={}; try{ LS.del(IMG_KEY); }catch(e){}
+  applyImages();
+};
+
+/* サウンド */
+let ac=null;
+function beep(freq,dur){
+  if(!document.getElementById('chkSound').checked) return;
+  try{
+    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    const o=ac.createOscillator(), g=ac.createGain();
+    o.type='square'; o.frequency.value=freq;
+    g.gain.setValueAtTime(0.06, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+dur);
+    o.connect(g).connect(ac.destination); o.start(); o.stop(ac.currentTime+dur);
+  }catch(e){}
+}
+function fanfare(){
+  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.18), i*110));
+}
+
+/* =========================================================
+   クラウド同期（Google スプレッドシート / Apps Script）
+   ========================================================= */
+const SY = {timer:null, busy:false, state:'off', msg:''};
+function syncReady(){ return !!(CFG.sync.enabled && CFG.sync.url && CFG.sync.room); }
+function setSyncStat(state, msg){
+  SY.state = state; SY.msg = msg || '';
+  const el = document.getElementById('syncStat');
+  if(!el) return;
+  const cls = {off:'', on:'on', busy:'busy', err:'err'}[state] || '';
+  const txt = {off:'同期：オフ（この端末のみ）', on:'同期：オン', busy:'同期中…', err:'同期エラー'}[state];
+  el.innerHTML = '<span class="syncdot '+cls+'"></span>' + txt + (msg ? ' — ' + esc(msg) : '');
+  const a = document.getElementById('aSyncStat');
+  if(a) a.innerHTML = el.innerHTML;
+}
+async function api(action, body){
+  const res = await fetch(CFG.sync.url, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},   // プリフライト回避
+    body: JSON.stringify(Object.assign({action:action, room:CFG.sync.room, pass:CFG.sync.pass}, body||{}))
+  });
+  const j = await res.json();
+  if(j.error) throw new Error(j.error);
+  return j;
+}
+async function doSync(force){
+  if(!syncReady() || SY.busy) return;
+  if(!force && S.phase !== 'idle') return;
+  SY.busy = true; setSyncStat('busy');
+  try{
+    captureUser();
+    const j = await api('sync', {users: DB.users, cfg: CFG});
+    let mineChanged = false;
+    Object.keys(j.users || {}).forEach(id=>{
+      const sv = j.users[id], lo = DB.users[id];
+      if(!lo || (sv.updatedAt||0) > (lo.updatedAt||0)){
+        DB.users[id] = sv;
+        if(id === DB.current) mineChanged = true;
+      }
+    });
+    Object.keys(DB.users).forEach(id=>{ if(j.users && j.users[id] === undefined && j.deleted && j.deleted.indexOf(id)>=0) delete DB.users[id]; });
+    if(!DB.users[DB.current]) DB.current = Object.keys(DB.users)[0];
+    if(j.cfg && (j.cfg.updatedAt||0) > (CFG.updatedAt||0)){
+      const sync = CFG.sync;                 // 接続情報は端末ごとに保持
+      CFG = mergeCfg(DEFAULT_CFG, j.cfg); CFG.sync = sync;
+      saveCfg(false); applyCfg();
+    }
+    if(mineChanged) applyUser(DB.current); else { renderUsers(); update(); }
+    setSyncStat('on', new Date().toLocaleTimeString('ja-JP'));
+  }catch(e){
+    setSyncStat('err', e.message || '通信失敗');
+  }finally{ SY.busy = false; }
+}
+function initSync(){
+  if(SY.timer) clearInterval(SY.timer);
+  if(!syncReady()){ setSyncStat('off'); return; }
+  setSyncStat('on', '接続中…');
+  doSync(true);
+  SY.timer = setInterval(()=>doSync(false), 12000);
+}
+
+/* =========================================================
+   管理者ページ
+   ========================================================= */
+const PIN_KEY = 'slotAdminPin_v1';
+async function hashPin(t){
+  const src = 'slot-admin::' + t;
+  try{
+    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(src));
+    return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+  }catch(e){
+    let h = 5381;
+    for(let i=0;i<src.length;i++){ h = ((h*33) ^ src.charCodeAt(i)) >>> 0; }
+    return 'fb'+h.toString(16);
+  }
+}
+function openAdminAuth(){
+  const stored = LS.get(PIN_KEY);
+  if(!stored){
+    openModal('管理者パスコードの設定',
+      '<div class="fld"><label>新しいパスコード（4文字以上）</label><input type="password" id="pin1" autocomplete="new-password"></div>'+
+      '<div class="fld"><label>確認のためもう一度</label><input type="password" id="pin2" autocomplete="new-password"></div>'+
+      '<div class="warn" id="pinErr" hidden>入力を確認してください</div>'+
+      '<div class="note">ブラウザ内の簡易的な入場制限です。本格的な認証ではないため、重要な秘密の保護には使用しないでください。忘れた場合はブラウザのサイトデータ削除でリセットできます。</div>',
+      async ()=>{
+        const a = document.getElementById('pin1').value, b = document.getElementById('pin2').value;
+        if(a.length < 4 || a !== b){ document.getElementById('pinErr').hidden = false; return; }
+        LS.set(PIN_KEY, await hashPin(a));
+        closeModal(); openAdmin();
+      }, '設定して開く');
+    document.getElementById('pin1').focus();
+    return;
+  }
+  openModal('管理者ログイン',
+    '<div class="fld"><label>パスコード</label><input type="password" id="pin1" autocomplete="current-password"></div>'+
+    '<div class="warn" id="pinErr" hidden>パスコードが違います</div>',
+    async ()=>{
+      const a = document.getElementById('pin1').value;
+      if(await hashPin(a) !== LS.get(PIN_KEY)){ document.getElementById('pinErr').hidden = false; return; }
+      closeModal(); openAdmin();
+    }, 'ログイン');
+  const el = document.getElementById('pin1');
+  el.focus();
+  el.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('mOk').click(); } };
+}
+
+const SMALL_SYMS = ['REP','GRA','CHE','BELL','PIE'];
+function fld(id, label, val, type, extra){
+  return '<div class="af'+(extra==='wide'?' wide':'')+'"><label>'+label+'</label>'+
+    '<input id="'+id+'" type="'+(type||'number')+'" value="'+esc(val)+'" step="any"></div>';
+}
+function openAdmin(){
+  const c = CFG;
+  const setRows = [1,2,3,4,5,6].map(n=>
+    fld('a_big'+n,'設定'+n+' BIG 1/', c.settings[n].big) + fld('a_reg'+n,'設定'+n+' REG 1/', c.settings[n].reg)).join('');
+  const smallRows = SMALL_SYMS.map(sym=>{
+    const den = (c.small.find(x=>x[0]===sym)||[sym,0])[1];
+    return fld('a_sd_'+sym, SYM[sym].name+' 1/', den) +
+      (sym==='REP' ? '<div class="af"><label>払出</label><input value="再遊技" disabled></div>'
+                   : fld('a_sp_'+sym, SYM[sym].name+' 払出枚数', c.pay[sym]||0));
+  }).join('');
+  const stripRows = [0,1,2].map(i=>
+    '<div class="af wide"><label>'+['左','中','右'][i]+'リール（カンマ区切り／使用可: '+ORDER.join(', ')+'）</label>'+
+    '<textarea id="a_strip'+i+'">'+STRIPS[i].join(',')+'</textarea></div>').join('');
+
+  document.getElementById('adminBody').innerHTML =
+  '<div class="asec"><h3>台の表示</h3><div class="agrid">'+
+    fld('a_brand','機種名', c.brand, 'text', 'wide') + fld('a_sub','サブタイトル', c.sub, 'text', 'wide') +
+  '</div><div class="note">実在する遊技機の名称・ロゴ・キャッチコピーは使用しないでください（商標権の侵害になり得ます）。</div></div>'+
+
+  '<div class="asec"><h3>遊技の基本</h3><div class="agrid">'+
+    fld('a_bet','BET（1回の投入枚数）', c.bet) + fld('a_bigPay','BIG 払出枚数', c.bigPay) +
+    fld('a_regPay','REG 払出枚数', c.regPay) + fld('a_speed','リール速度（コマ/秒）', c.speed) +
+  '</div></div>'+
+
+  '<div class="asec"><h3>ボーナス確率（分母）</h3><div class="agrid">'+setRows+'</div></div>'+
+
+  '<div class="asec"><h3>小役の確率と払出</h3><div class="agrid">'+smallRows+'</div></div>'+
+
+  '<div class="asec"><h3>リール配列</h3><div class="agrid">'+stripRows+
+  '</div><div class="note">3本とも同じコマ数にしてください。不正な値を入れた場合は既定の配列に戻ります。</div></div>'+
+
+  '<div class="asec"><h3>借金（GM）</h3><div class="agrid">'+
+    fld('a_gmBase','初回金利 %', Math.round(c.gm.base*1000)/10) +
+    fld('a_gmStep','1回ごとの上昇 %', Math.round(c.gm.step*1000)/10) +
+    fld('a_gmMax','金利の上限 %', Math.round(c.gm.max*1000)/10) +
+  '</div></div>'+
+
+  '<div class="asec"><h3>プレイヤー既定値・制限</h3><div class="agrid">'+
+    fld('a_startBank','新規プレイヤーの初期持ち球', c.startBank) +
+    fld('a_lendUnit','「持ち球から補充」の単位', c.lendUnit) +
+    '<div class="af"><label>現在の設定（1〜6）</label><select id="a_setting">'+
+      [1,2,3,4,5,6].map(n=>'<option value="'+n+'"'+(c.setting===n?' selected':'')+'>設定'+n+
+        '（BIG 1/'+c.settings[n].big+'・REG 1/'+c.settings[n].reg+'）</option>').join('')+'</select></div>'+
+    '<div class="af"><label>設定表示（遊技画面）</label><select id="a_settingUI">'+
+      '<option value="hidden"'+(c.settingUI==='hidden'?' selected':'')+'>表示しない（管理者のみ）</option>'+
+      '<option value="view"'+(c.settingUI==='view'?' selected':'')+'>表示のみ（変更不可）</option>'+
+      '<option value="edit"'+(c.settingUI==='edit'?' selected':'')+'>表示して変更も許可</option></select></div>'+
+    '<div class="af"><label>DATAの確率表示</label><select id="a_showOdds">'+
+      '<option value="1"'+(c.showOdds?' selected':'')+'>表示する</option>'+
+      '<option value="0"'+(!c.showOdds?' selected':'')+'>表示しない（BIG/REG/合成確率）</option></select></div>'+
+    '<div class="af"><label>目押しアシスト</label><select id="a_assist">'+
+      '<option value="free"'+(c.forceAssist===null?' selected':'')+'>プレイヤーが選択</option>'+
+      '<option value="on"'+(c.forceAssist===true?' selected':'')+'>常時ON</option>'+
+      '<option value="off"'+(c.forceAssist===false?' selected':'')+'>常時OFF</option></select></div>'+
+    '<div class="af"><label>絵柄画像の差し替え</label><select id="a_allowImg">'+
+      '<option value="1"'+(c.allowImageUpload?' selected':'')+'>許可</option>'+
+      '<option value="0"'+(!c.allowImageUpload?' selected':'')+'>禁止（権利侵害の予防）</option></select></div>'+
+  '</div></div>'+
+
+  '<div class="asec"><h3>複数端末で持ち球を共有（Google スプレッドシート）</h3><div class="agrid">'+
+    '<div class="af"><label>同期</label><select id="a_syncOn">'+
+      '<option value="0"'+(!c.sync.enabled?' selected':'')+'>オフ（この端末のみ）</option>'+
+      '<option value="1"'+(c.sync.enabled?' selected':'')+'>オン</option></select></div>'+
+    fld('a_syncRoom','ルームID（店舗名など）', c.sync.room, 'text') +
+    fld('a_syncPass','合言葉', c.sync.pass, 'text') +
+    fld('a_syncUrl','Apps Script ウェブアプリURL（/exec）', c.sync.url, 'text', 'wide') +
+  '</div>'+
+  '<div class="btnrow"><button id="aTest">接続テスト</button><button id="aSyncNow">今すぐ同期</button></div>'+
+  '<div class="stat" id="aSyncStat"></div>'+
+  '<div class="note">URLはこの端末のブラウザにのみ保存され、ソースコードには含まれません。公開リポジトリにURLや合言葉を書き込まないでください。</div></div>'+
+
+  '<div class="asec"><h3>プレイヤー管理</h3><div id="aPlayers"></div></div>'+
+
+  '<div class="asec"><h3>データ</h3>'+
+    '<div class="btnrow"><button id="aExport">設定を書き出す</button><button id="aImport">設定を読み込む</button>'+
+    '<button id="aPin">パスコード変更</button></div>'+
+    '<div class="btnrow"><button id="aDefault">マシン設定を初期値に戻す</button>'+
+    '<button id="aWipe" style="color:var(--red)">この端末の全データを削除</button></div>'+
+  '</div>'+
+
+  '<div class="abar"><button id="aSave" class="primary">設定を保存して反映</button></div>';
+
+  renderAdminPlayers();
+  setSyncStat(SY.state, SY.msg);
+  document.getElementById('admin').hidden = false;
+  window.scrollTo(0,0);
+
+  document.getElementById('aSave').onclick   = saveAdmin;
+  document.getElementById('aTest').onclick   = async ()=>{
+    const st = document.getElementById('aSyncStat');
+    st.textContent = '接続テスト中…';
+    const bk = JSON.parse(JSON.stringify(CFG.sync));
+    CFG.sync = {enabled:true, url:document.getElementById('a_syncUrl').value.trim(),
+                room:document.getElementById('a_syncRoom').value.trim(),
+                pass:document.getElementById('a_syncPass').value};
+    try{ const j = await api('ping'); st.innerHTML = '<span class="ok">接続OK（ルーム: '+esc(j.room||'')+' / 登録プレイヤー '+(j.count||0)+'人）</span>'; }
+    catch(e){ st.innerHTML = '<span class="warn">失敗: '+esc(e.message)+'</span>'; CFG.sync = bk; }
+  };
+  document.getElementById('aSyncNow').onclick = ()=>doSync(true);
+  document.getElementById('aExport').onclick  = exportCfg;
+  document.getElementById('aImport').onclick  = ()=>document.getElementById('cfgIn').click();
+  document.getElementById('aPin').onclick     = ()=>{ LS.del(PIN_KEY); closeAdmin(); openAdminAuth(); };
+  document.getElementById('aDefault').onclick = ()=>{
+    openModal('マシン設定の初期化','<div class="warn">確率・配当・リール配列・表示名を初期値に戻します。プレイヤーのデータと同期設定は残ります。</div>',
+      ()=>{ const sync = CFG.sync; CFG = mergeCfg(DEFAULT_CFG, {}); CFG.sync = sync; saveCfg(); applyCfg(); update(); closeModal(); openAdmin(); }, '初期化する');
+  };
+  document.getElementById('aWipe').onclick = ()=>{
+    openModal('全データの削除','<div class="warn">この端末に保存されたプレイヤー・持ち球・借金・設定・絵柄画像をすべて削除します。取り消せません。</div>',
+      ()=>{ [USERS_KEY, CFG_KEY, PIN_KEY, IMG_KEY, 'slotAgreed_v1'].forEach(k=>{ try{LS.del(k)}catch(e){} }); location.reload(); }, '削除する');
+  };
+  document.getElementById('aClose').onclick = closeAdmin;
+}
+function closeAdmin(){ document.getElementById('admin').hidden = true; }
+
+function renderAdminPlayers(){
+  const ids = Object.keys(DB.users);
+  document.getElementById('aPlayers').innerHTML =
+    '<table class="atbl"><tr><th>名前</th><th>持ち球</th><th>クレジット</th><th>借金</th><th>操作</th></tr>'+
+    ids.map(id=>{
+      const u = DB.users[id];
+      const debt = (u.debts||[]).reduce((a,d)=>a+d.amount,0);
+      return '<tr><td><input type="text" data-f="name" data-id="'+id+'" value="'+esc(u.name)+'" style="width:120px"></td>'+
+        '<td><input type="number" data-f="bank" data-id="'+id+'" value="'+(u.bank||0)+'"></td>'+
+        '<td><input type="number" data-f="credit" data-id="'+id+'" value="'+(u.credit||0)+'"></td>'+
+        '<td>'+debt+'枚</td>'+
+        '<td><button data-act="clear" data-id="'+id+'">借金帳消し</button> '+
+        '<button data-act="del" data-id="'+id+'" style="color:var(--red)">削除</button></td></tr>';
+    }).join('')+'</table>';
+  document.getElementById('aPlayers').querySelectorAll('button').forEach(b=>{
+    b.onclick = ()=>{
+      const id = b.dataset.id;
+      if(b.dataset.act === 'clear'){
+        DB.users[id].debts = []; DB.users[id].gmLoans = 0; DB.users[id].updatedAt = Date.now();
+      }else{
+        if(Object.keys(DB.users).length <= 1) return;
+        delete DB.users[id];
+        if(DB.current === id) DB.current = Object.keys(DB.users)[0];
+      }
+      applyUser(DB.current); renderAdminPlayers(); doSync(true);
+    };
+  });
+}
+function saveAdmin(){
+  const num = (id, def)=>{ const v = parseFloat(document.getElementById(id).value); return isFinite(v) ? v : def; };
+  const c = JSON.parse(JSON.stringify(CFG));
+  c.brand = (document.getElementById('a_brand').value || 'SLOT').slice(0,24);
+  c.sub   = document.getElementById('a_sub').value.slice(0,48);
+  c.bet   = Math.max(1, Math.round(num('a_bet', 3)));
+  c.bigPay = Math.max(0, Math.round(num('a_bigPay', 252)));
+  c.regPay = Math.max(0, Math.round(num('a_regPay', 96)));
+  c.speed  = Math.min(200, Math.max(4, num('a_speed', 28)));
+  [1,2,3,4,5,6].forEach(n=>{
+    c.settings[n] = {big: Math.max(1, num('a_big'+n, 273)), reg: Math.max(1, num('a_reg'+n, 439))};
+  });
+  c.small = SMALL_SYMS.map(sym=>[sym, Math.max(1, num('a_sd_'+sym, 1000))]);
+  c.pay = {};
+  SMALL_SYMS.filter(s=>s!=='REP').forEach(sym=>{ c.pay[sym] = Math.max(0, Math.round(num('a_sp_'+sym, 0))); });
+  const strips = [0,1,2].map(i=> document.getElementById('a_strip'+i).value.split(/[,\s]+/)
+      .map(t=>t.trim().toUpperCase()).filter(t=>ORDER.indexOf(t)>=0));
+  c.strips = (strips.every(a=>a.length>=3) && strips[0].length===strips[1].length && strips[1].length===strips[2].length)
+    ? strips : null;
+  c.gm = {base: Math.max(0, num('a_gmBase',10))/100, step: Math.max(0, num('a_gmStep',5))/100, max: Math.max(0, num('a_gmMax',60))/100};
+  c.startBank = Math.max(0, Math.round(num('a_startBank', 0)));
+  c.lendUnit  = Math.max(1, Math.round(num('a_lendUnit', 50)));
+  c.setting   = Math.min(6, Math.max(1, +document.getElementById('a_setting').value || 1));
+  c.settingUI = document.getElementById('a_settingUI').value;
+  c.showOdds  = document.getElementById('a_showOdds').value === '1';
+  const asst = document.getElementById('a_assist').value;
+  c.forceAssist = asst === 'on' ? true : asst === 'off' ? false : null;
+  c.allowImageUpload = document.getElementById('a_allowImg').value === '1';
+  c.sync = {enabled: document.getElementById('a_syncOn').value === '1',
+            url: document.getElementById('a_syncUrl').value.trim(),
+            room: document.getElementById('a_syncRoom').value.trim(),
+            pass: document.getElementById('a_syncPass').value};
+  CFG = c; saveCfg(); applyCfg();
+
+  document.getElementById('aPlayers').querySelectorAll('input').forEach(inp=>{
+    const u = DB.users[inp.dataset.id]; if(!u) return;
+    if(inp.dataset.f === 'name') u.name = (inp.value||u.name).slice(0,16);
+    else u[inp.dataset.f] = Math.max(0, Math.round(+inp.value)||0);
+    u.updatedAt = Date.now();
+  });
+  applyUser(DB.current);
+  initSync(); doSync(true);
+  setMsg('管理者設定を保存しました', true);
+  const bar = document.getElementById('aSave');
+  bar.textContent = '保存しました'; setTimeout(()=>{ bar.textContent = '設定を保存して反映'; }, 1400);
+  renderAdminPlayers();
+}
+function exportCfg(){
+  const blob = new Blob([JSON.stringify(CFG, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'slot-config.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+}
+document.getElementById('cfgIn').addEventListener('change', e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const fr = new FileReader();
+  fr.onload = ()=>{
+    try{
+      const sync = CFG.sync;
+      CFG = mergeCfg(DEFAULT_CFG, JSON.parse(fr.result));
+      CFG.sync = sync; saveCfg(); applyCfg(); update(); openAdmin();
+    }catch(err){ alert('読み込めませんでした: ' + err.message); }
+  };
+  fr.readAsText(f);
+  e.target.value = '';
+});
+
+/* =========================================================
+   免責事項
+   ========================================================= */
+const AGREE_KEY = 'slotAgreed_v1';
+const TERMS_HTML =
+  '<div class="calc" style="line-height:1.9">'+
+  '本アプリは<b style="float:none">遊技機の挙動を模した娯楽目的のシミュレーター</b>です。<br>'+
+  '・実在の遊技機、メーカー、商品、団体とは一切関係がありません。<br>'+
+  '・メダル・持ち球・借金・金利はすべてゲーム内の架空の数値です。現金その他の財物と交換することはできず、現実の貸借契約でもありません。<br>'+
+  '・実際の金銭や財物を賭ける用途には使用しないでください。<br>'+
+  '・18歳以上の方を対象としています。<br>'+
+  '・本アプリはMITライセンスで提供され、無保証です。作者は本アプリの利用によって生じた損害について責任を負いません。'+
+  '</div>'+
+  '<div class="note">ギャンブル等でお困りのときは、お住まいの都道府県・政令指定都市の精神保健福祉センターにご相談ください。</div>';
+function initLegal(){
+  document.getElementById('lkTerms').onclick = e=>{
+    e.preventDefault();
+    openModal('免責事項・ライセンス', TERMS_HTML, null);
+  };
+  if(LS.get(AGREE_KEY)) return;
+  openModal('ご利用にあたって', TERMS_HTML,
+    ()=>{ try{ LS.set(AGREE_KEY, '1'); }catch(e){} closeModal(); }, '同意して始める');
+}
+
+/* =========================================================
+   起動
+   ========================================================= */
+loadCfg(); applyCfg();
+buildStrips(); initUsers(); update();
+initSync(); initLegal();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
