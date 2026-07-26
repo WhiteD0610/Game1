@@ -491,7 +491,7 @@ const BASE_STRIPS = [
  ['REP','GRA','BELL','REP','GRA','R7','REP','GRA','BELL','REP','GRA','BAR','REP','GRA','PIE','REP','GRA','B7','REP','GRA','BELL']
 ];
 let STRIPS = BASE_STRIPS;
-let N = 21; const CELL = 96; let SPEED = 28; // コマ/秒
+let N = 21; let CELL = 96; let SPEED = 28; // コマ/秒（CELLは実寸を測って更新）
 
 /* 設定別ボーナス確率（分母） */
 let SETTINGS = {
@@ -617,6 +617,7 @@ function buildStrips(){
     }
   });
   applyImages();
+  measureCell();
 }
 function applyImages(){
   document.querySelectorAll('.cell').forEach(c=>{
@@ -630,6 +631,20 @@ function applyImages(){
     else { p.style.backgroundImage=''; p.classList.remove('img'); }
   });
 }
+/* CSSの --cell は画面サイズで変わるため、実寸を測って使う。
+   ここがズレるとリールの停止位置が半コマずれる。 */
+function measureCell(){
+  const c = document.querySelector('.cell');
+  if(!c) return;
+  const h = c.getBoundingClientRect().height;
+  if(h > 0 && Math.abs(h - CELL) > 0.01){ CELL = h; render(); }
+}
+window.addEventListener('resize', measureCell);
+if(window.ResizeObserver){
+  const ro = new ResizeObserver(measureCell);
+  window.addEventListener('load', ()=>{ const r = document.querySelector('.reel'); if(r) ro.observe(r); });
+}
+
 function render(){
   S.reels.forEach((rl,i)=>{
     const off = ((rl.r % N) + N) % N;
@@ -1487,7 +1502,9 @@ function initLegal(){
    起動
    ========================================================= */
 loadCfg(); applyCfg();
-buildStrips(); initUsers(); update();
+buildStrips(); measureCell(); initUsers(); update();
+window.addEventListener('load', measureCell);
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(measureCell);
 initSync(); initLegal();
 requestAnimationFrame(loop);
 </script>
