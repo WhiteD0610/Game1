@@ -2,171 +2,134 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#0b0d12">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PACHISLOT SIMULATOR - A-TYPE</title>
 <style>
 :root{
-  --bg:#0b0d12;
-  --cab:#151a24;
-  --cab2:#0f131b;
-  --edge:#2a3242;
-  --amber:#ffb020;
-  --amber2:#ff7a1a;
-  --cyan:#38d6ff;
-  --red:#ff3b47;
-  --txt:#e8edf5;
-  --dim:#78849a;
-  --cell:clamp(66px,12vh,132px);
-  --cw:calc(var(--cell)*1.22);
+  --bg:#0b0d12; --cab:#151a24; --cab2:#0f131b; --edge:#2a3242;
+  --amber:#ffb020; --amber2:#ff7a1a; --cyan:#38d6ff; --red:#ff3b47;
+  --txt:#e8edf5; --dim:#78849a;
+  --cell:96px; --cw:112px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-button,select{touch-action:manipulation}
-[hidden]{display:none !important}
 body{
   background:radial-gradient(ellipse at 50% 0%,#1a2130 0%,var(--bg) 60%);
-  color:var(--txt);
-  font-family:"Segoe UI","Yu Gothic UI",sans-serif;
-  min-height:100vh;min-height:100dvh;
-  display:flex;flex-direction:column;
+  color:var(--txt); font-family:"Segoe UI","Yu Gothic UI",sans-serif;
+  min-height:100vh; display:flex; justify-content:center; align-items:flex-start;
+  padding:24px 16px 60px;
 }
-.main{
-  flex:1 1 auto;min-height:0;
-  display:flex;justify-content:center;align-items:flex-start;
-  gap:14px;padding:12px 14px 10px;overflow:auto;
-}
-.wrap{display:flex;gap:14px;align-items:flex-start;max-height:100%}
+.wrap{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;justify-content:center}
 
 /* ===== 筐体 ===== */
 .cabinet{
-  width:min(660px,68vw);
-  min-width:360px;
-  flex:0 0 auto;
-  background:linear-gradient(180deg,var(--cab) 0%,var(--cab2) 100%);
-  border:2px solid var(--edge);
-  border-radius:18px;
-  box-shadow:0 0 0 6px #05070b,0 24px 60px rgba(0,0,0,.8);
-  overflow:hidden;
+  width:520px; background:linear-gradient(180deg,var(--cab) 0%,var(--cab2) 100%);
+  border:2px solid var(--edge); border-radius:18px;
+  box-shadow:0 0 0 6px #05070b,0 24px 60px rgba(0,0,0,.8); overflow:hidden;
 }
-.panel{
-  background:linear-gradient(180deg,#1d2534,#121722);
-  border-bottom:2px solid var(--edge);
-  padding:12px 18px 14px;
-  text-align:center;
-  position:relative;
-}
-.brand{
-  font-size:clamp(22px,3.2vh,36px);font-weight:800;letter-spacing:.22em;
+.panel{background:linear-gradient(180deg,#1d2534,#121722);border-bottom:2px solid var(--edge);
+  padding:18px 20px 22px;text-align:center;position:relative}
+.brand{font-size:30px;font-weight:800;letter-spacing:.22em;
   background:linear-gradient(180deg,#fff2c0,var(--amber) 45%,var(--amber2));
   -webkit-background-clip:text;background-clip:text;color:transparent;
-  text-shadow:0 2px 0 rgba(0,0,0,.4);
-}
+  text-shadow:0 2px 0 rgba(0,0,0,.4)}
 .sub{font-size:11px;color:var(--dim);letter-spacing:.35em;margin-top:4px}
+.who{font-size:11px;color:var(--dim);letter-spacing:.16em;margin-top:6px}
+.who b{color:var(--cyan);font-family:Consolas,monospace}
 
-/* ===== 告知ランプ ===== */
-.lamp{
-  position:absolute;top:12px;right:18px;
-  width:clamp(54px,8vh,84px);height:clamp(54px,8vh,84px);border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,#3a2a10,#181310);
-  border:3px solid #2e3a4d;
+.lamp{position:absolute;top:16px;right:20px;width:76px;height:76px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#3a2a10,#181310);border:3px solid #2e3a4d;
   display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:800;letter-spacing:.06em;color:#4a4030;
-  transition:none;
-}
-.lamp.on{
-  background:radial-gradient(circle at 35% 30%,#fffbe8,var(--amber) 40%,var(--amber2));
-  color:#5a2b00;
-  border-color:#ffd98a;
+  font-size:13px;font-weight:800;letter-spacing:.06em;color:#4a4030}
+.lamp.on{background:radial-gradient(circle at 35% 30%,#fffbe8,var(--amber) 40%,var(--amber2));
+  color:#5a2b00;border-color:#ffd98a;
   box-shadow:0 0 24px 6px rgba(255,176,32,.65),0 0 60px 16px rgba(255,122,26,.35);
-  animation:pulse .55s infinite alternate;
-}
+  animation:pulse .55s infinite alternate}
 @keyframes pulse{from{filter:brightness(1)}to{filter:brightness(1.35)}}
 
 /* ===== リール ===== */
-.reelarea{padding:16px 20px;background:#05070b;display:flex;justify-content:center;gap:12px;position:relative}
-.reel{
-  width:var(--cw);height:calc(var(--cell)*3);
-  overflow:hidden;position:relative;
-  background:#e9e6df;
-  border:3px solid #333c4d;border-radius:8px;
-  box-shadow:inset 0 0 24px rgba(0,0,0,.55);
-}
+.reelarea{padding:22px 0;background:#05070b;display:flex;justify-content:center}
+.reelbox{position:relative;display:flex;gap:10px;
+  width:calc(var(--cw)*3 + 38px);height:calc(var(--cell)*3)}
+.reel{width:var(--cw);height:calc(var(--cell)*3);overflow:hidden;position:relative;
+  background:#e9e6df;border:3px solid #333c4d;border-radius:8px;
+  box-shadow:inset 0 0 24px rgba(0,0,0,.55)}
 .strip{position:absolute;top:0;left:0;width:100%;will-change:transform}
-.cell{
-  height:var(--cell);width:100%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:calc(var(--cell)*0.48);font-weight:900;
-  border-bottom:1px solid rgba(0,0,0,.12);
-  background-size:cover;background-position:center;
-  user-select:none;
-}
-.s-R7{color:#e01b24}
-.s-B7{color:#1668d6}
-.s-BAR{font-size:calc(var(--cell)*0.27);letter-spacing:.04em;color:#111;
-  background:linear-gradient(180deg,#fff 0 33%,#111 33% 40%,#fff 40% 60%,#111 60% 67%,#fff 67%);
+.cell{height:var(--cell);width:100%;display:flex;align-items:center;justify-content:center;
+  font-weight:900;border-bottom:1px solid rgba(0,0,0,.12);
+  background-repeat:no-repeat;background-position:center;user-select:none;position:relative}
+.cell .idx{position:absolute;left:3px;top:2px;font-size:9px;color:#9a958c;font-family:Consolas,monospace;font-weight:400;display:none}
+.reelbox.showidx .cell .idx{display:block}
+
+/* 絵柄ごとのサイズ差（size 大→小） */
+.s-R7 {color:#e01b24;font-size:calc(var(--cell)*.645)}
+.s-B7 {color:#1668d6;font-size:calc(var(--cell)*.645)}
+.s-BAR{font-size:calc(var(--cell)*.313);letter-spacing:.06em;color:#111;
+  background:linear-gradient(180deg,#fff 0 30%,#111 30% 38%,#fff 38% 62%,#111 62% 70%,#fff 70%);
   -webkit-text-fill-color:#111}
-.s-REP{color:#7a3fc4;font-size:calc(var(--cell)*0.42)}
+.s-BELL{font-size:calc(var(--cell)*.500)}
+.s-PIE {font-size:calc(var(--cell)*.438)}
+.s-GRA {font-size:calc(var(--cell)*.375)}
+.s-CHE {font-size:calc(var(--cell)*.313)}
+.s-REP {color:#7a3fc4;font-size:calc(var(--cell)*.271)}
 .cell.img{font-size:0}
-.payline{
-  position:absolute;left:20px;right:20px;top:calc(16px + var(--cell) + var(--cell)/2 - 1px);
-  height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);
-  opacity:.75;pointer-events:none;
-}
+.cell.img.z-R7,.cell.img.z-B7{background-size:96% 96%}
+.cell.img.z-BAR{background-size:88% 62%}
+.cell.img.z-BELL{background-size:76% 76%}
+.cell.img.z-PIE{background-size:68% 68%}
+.cell.img.z-GRA{background-size:58% 58%}
+.cell.img.z-CHE{background-size:48% 48%}
+.cell.img.z-REP{background-size:40% 40%}
+
+#lines{position:absolute;inset:0;pointer-events:none}
+#lines line{stroke:#c8c2b6;stroke-width:2;opacity:.28}
+#lines line.win{stroke:var(--red);stroke-width:5;opacity:1;
+  filter:drop-shadow(0 0 6px var(--red));animation:lineflash .35s 6 alternate}
+@keyframes lineflash{from{opacity:.35}to{opacity:1}}
 .flashwin .reel{animation:winflash .3s 4}
 @keyframes winflash{50%{box-shadow:inset 0 0 30px rgba(255,176,32,.9),0 0 20px var(--amber)}}
 
-/* ===== 情報表示 ===== */
+/* ===== 情報 ===== */
 .meters{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;background:var(--edge);border-top:2px solid var(--edge)}
-.meter .vl.gr{color:#5ce08a}
-.meter{background:#0c1017;padding:7px 6px;text-align:center}
+.meter{background:#0c1017;padding:10px 8px;text-align:center}
 .meter .lb{font-size:10px;color:var(--dim);letter-spacing:.18em}
-.meter .vl{font-family:"Consolas",monospace;font-size:clamp(16px,2.4vh,26px);font-weight:700;color:var(--amber);line-height:1.2}
-.meter .vl.cy{color:var(--cyan)}
-
-.msg{
-  background:#0c1017;padding:10px 12px;text-align:center;
-  font-size:15px;font-weight:700;letter-spacing:.08em;min-height:38px;
-  border-top:1px solid var(--edge);color:var(--txt);
-}
+.meter .vl{font-family:Consolas,monospace;font-size:22px;font-weight:700;color:var(--amber);line-height:1.2}
+.meter .vl.cy{color:var(--cyan)}.meter .vl.gr{color:#5ce08a}.meter .vl.rd{color:var(--red)}
+.msg{background:#0c1017;padding:12px;text-align:center;font-size:15px;font-weight:700;
+  letter-spacing:.08em;min-height:44px;border-top:1px solid var(--edge)}
 .msg.hit{color:var(--amber);text-shadow:0 0 12px rgba(255,176,32,.6)}
-
-.controls{padding:12px 16px 14px;background:linear-gradient(180deg,#161c28,#10141d);display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.controls .grpPlay,.controls .grpStop,.controls .grpSub{display:contents}
-.btnStop .lbl+.key{margin-left:.35em}
-#btnSpin .key{margin-left:.2em}
-button{
-  font-family:inherit;font-weight:700;font-size:13px;letter-spacing:.06em;
-  padding:9px 14px;border-radius:8px;border:1px solid var(--edge);
-  background:#1e2634;color:var(--txt);cursor:pointer;transition:.12s;
-}
+.controls{padding:16px 20px 22px;background:linear-gradient(180deg,#161c28,#10141d);
+  display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+button{font-family:inherit;font-weight:700;font-size:13px;letter-spacing:.06em;
+  padding:11px 16px;border-radius:8px;border:1px solid var(--edge);
+  background:#1e2634;color:var(--txt);cursor:pointer;transition:.12s}
 button:hover{background:#2a3446;border-color:#4a5b78}
 button:active{transform:translateY(1px)}
 button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 button.primary{background:linear-gradient(180deg,#ffcf5a,var(--amber2));color:#3a1a00;border-color:#ffd98a}
 button.primary:hover{filter:brightness(1.1)}
-.hint{padding:0 18px 12px;background:#10141d;text-align:center;font-size:11px;color:var(--dim);line-height:1.6}
-kbd{background:#232c3c;border:1px solid #3d4a60;border-bottom-width:2px;border-radius:4px;padding:1px 7px;font-family:monospace;color:var(--txt)}
+.hint{padding:0 20px 18px;background:#10141d;text-align:center;font-size:12px;color:var(--dim);line-height:1.7}
+kbd{background:#232c3c;border:1px solid #3d4a60;border-bottom-width:2px;border-radius:4px;
+  padding:1px 7px;font-family:monospace;color:var(--txt)}
 
-/* ===== サイドパネル ===== */
-.side{width:290px;flex:0 0 auto;display:flex;flex-direction:column;gap:12px;
-  max-height:calc(100dvh - 108px);overflow-y:auto;padding-right:4px;scrollbar-width:thin}
-.card{background:var(--cab);border:1px solid var(--edge);border-radius:14px;padding:13px 15px;flex:0 0 auto}
-.card h2{font-size:11px;letter-spacing:.2em;color:var(--amber);margin-bottom:9px;font-weight:800}
-.row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;padding:4px 0;color:var(--dim)}
+/* ===== サイド ===== */
+.side{width:300px;display:flex;flex-direction:column;gap:14px}
+.card{background:var(--cab);border:1px solid var(--edge);border-radius:14px;padding:16px}
+.card h2{font-size:12px;letter-spacing:.2em;color:var(--amber);margin-bottom:12px;font-weight:800}
+.row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:5px 0;color:var(--dim);gap:8px}
 .row b{color:var(--txt);font-family:Consolas,monospace;font-size:14px}
-select{background:#0c1017;color:var(--txt);border:1px solid var(--edge);border-radius:6px;padding:6px 10px;font-family:inherit;font-size:13px}
+.row b.rd{color:var(--red)}
+select,input[type=number],input[type=text],input[type=password]{
+  background:#0c1017;color:var(--txt);border:1px solid var(--edge);border-radius:6px;
+  padding:6px 10px;font-family:inherit;font-size:13px}
+.row input[type=number]{width:92px;text-align:right;font-family:Consolas,monospace}
 label.sw{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim);cursor:pointer;padding:5px 0}
 input[type=checkbox]{width:16px;height:16px;accent-color:var(--amber)}
-
 .symgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .symslot{text-align:center}
-.symslot .pv{
-  width:100%;aspect-ratio:1;border-radius:8px;border:1px solid var(--edge);
+.symslot .pv{width:100%;aspect-ratio:1;border-radius:8px;border:1px solid var(--edge);
   background:#e9e6df;display:flex;align-items:center;justify-content:center;
-  font-size:24px;font-weight:900;background-size:cover;background-position:center;
-  cursor:pointer;overflow:hidden;
-}
+  font-weight:900;background-repeat:no-repeat;background-position:center;
+  cursor:pointer;overflow:hidden}
 .symslot .pv:hover{border-color:var(--amber)}
 .symslot .nm{font-size:10px;color:var(--dim);margin-top:4px}
 .symslot .pv.img{font-size:0}
@@ -174,10 +137,6 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--amber)}
 .btnrow{display:flex;gap:6px;margin-top:10px}
 .btnrow button{flex:1;padding:9px 4px;font-size:12px}
 #selUser{max-width:150px}
-.who{font-size:11px;color:var(--dim);letter-spacing:.16em;margin-top:6px}
-".who b{color:var(--cyan);font-family:Consolas,monospace}
-.meter .vl.rd{color:var(--red)}
-.row b.rd{color:var(--red)}
 .debtlist{margin-top:8px;display:flex;flex-direction:column;gap:6px;max-height:190px;overflow:auto}
 .debt{background:#0c1017;border:1px solid var(--edge);border-left:3px solid var(--red);
   border-radius:6px;padding:7px 9px;font-size:12px;color:var(--dim)}
@@ -185,6 +144,57 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--amber)}
 .debt .amt{font-family:Consolas,monospace;color:var(--red);font-weight:700}
 .debt .sm{font-size:10px;margin-top:2px}
 .empty{font-size:11px;color:var(--dim);text-align:center;padding:8px 0}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:99px;
+  border:1px solid var(--edge);color:var(--dim);letter-spacing:.1em}
+.badge.on{color:#5ce08a;border-color:#2c6b45}
+.badge.off{color:var(--dim)}
+
+/* ===== スマホ（幅860px以下）：大きく押しやすいボタン ===== */
+@media (max-width:860px){
+  :root{--cell:82px;--cw:96px}
+  body{padding:12px 10px 40px}
+  .wrap{flex-direction:column;gap:12px;width:100%}
+  .cabinet{width:100%;max-width:560px;margin:0 auto}
+  .side{width:100%;max-width:560px;margin:0 auto}
+  .reelarea{padding:16px 0}
+  .brand{font-size:24px}
+  .lamp{width:60px;height:60px;font-size:11px;top:12px;right:12px}
+  .meter .vl{font-size:20px}
+  .msg{font-size:16px;padding:14px 10px;min-height:52px}
+
+  .controls{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:14px 12px 18px}
+  .controls button{min-height:56px;font-size:15px;padding:12px 6px;border-radius:12px;
+    border-bottom-width:3px;line-height:1.25}
+  #btnSpin{grid-column:1/-1;min-height:66px;font-size:18px}
+  .btnStop{grid-column:span 2;font-size:17px}
+  #btnBorrow,#btnRepay,#btnRefill,#btnPayout{grid-column:span 3}
+
+  .hint{font-size:12px;padding:0 14px 16px}
+  .card{padding:14px 14px 16px;border-radius:16px}
+  .row{padding:8px 0;font-size:14px}
+  .row b{font-size:15px}
+  .btnrow{gap:8px;margin-top:12px}
+  .btnrow button{min-height:52px;font-size:14px;border-radius:12px;border-bottom-width:3px}
+  label.sw{padding:10px 0;font-size:15px}
+  input[type=checkbox]{width:22px;height:22px}
+  select,input[type=number],input[type=text],input[type=password]{min-height:44px;font-size:16px}
+  #selUser{max-width:none;flex:1}
+  .symgrid{grid-template-columns:repeat(4,1fr);gap:10px}
+  .symslot .nm{font-size:11px}
+
+  .mbox{max-width:100%;padding:18px 16px;border-radius:16px}
+  .mbox .btnrow button{min-height:54px;font-size:15px}
+  .fld input,.fld select{min-height:48px;font-size:16px}
+  .gbox{padding:22px 16px}
+  .tabs button{min-height:50px;font-size:13px;border-radius:12px}
+  #btnJoin,#btnNew,#btnSolo{min-height:56px;font-size:16px;border-radius:12px}
+}
+@media (max-width:400px){
+  :root{--cell:74px;--cw:86px}
+  .paygrid{grid-template-columns:1fr}
+}
+
+/* ===== モーダル / ログイン ===== */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;
   align-items:center;justify-content:center;z-index:50;padding:20px}
 .modal[hidden]{display:none}
@@ -200,118 +210,86 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--amber)}
 .calc b{color:var(--txt);font-family:Consolas,monospace;font-size:14px;float:right}
 .calc b.rd{color:var(--red)}
 .warn{font-size:11px;color:var(--red);line-height:1.6;margin-bottom:10px}
-.ok{color:#5ce08a}
-.admin{position:fixed;inset:0;background:#07090d;z-index:80;overflow:auto;padding:24px 16px 60px}
-.admin[hidden]{display:none}
-.abox{max-width:840px;margin:0 auto}
-.ahead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;
-  border-bottom:1px solid var(--edge);padding-bottom:14px}
-.ahead h1{font-size:18px;letter-spacing:.2em;color:var(--red)}
-.ahead .tag{font-size:11px;color:var(--dim);letter-spacing:.16em}
-.asec{background:var(--cab);border:1px solid var(--edge);border-radius:12px;padding:16px;margin-bottom:14px}
-.asec h3{font-size:12px;letter-spacing:.2em;color:var(--amber);margin-bottom:12px}
-.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.af label{display:block;font-size:10px;color:var(--dim);letter-spacing:.12em;margin-bottom:4px}
-.af input,.af select,.af textarea{width:100%;background:#0c1017;color:var(--txt);
-  border:1px solid var(--edge);border-radius:6px;padding:8px 9px;font-family:inherit;font-size:13px}
-.af textarea{font-family:Consolas,monospace;font-size:11px;line-height:1.7;min-height:74px;resize:vertical}
-.af.wide{grid-column:1/-1}
-.atbl{width:100%;border-collapse:collapse;font-size:12px}
-.atbl th{font-size:10px;color:var(--dim);letter-spacing:.12em;text-align:left;padding:6px 6px;border-bottom:1px solid var(--edge)}
-.atbl td{padding:5px 6px;border-bottom:1px solid #1a2130}
-.atbl input{width:88px;background:#0c1017;color:var(--txt);border:1px solid var(--edge);
-  border-radius:5px;padding:5px 6px;font-family:Consolas,monospace;font-size:12px}
-.atbl button{padding:5px 9px;font-size:11px}
-.abar{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(7,9,13,0),#07090d 30%);
-  padding:16px 0 4px;display:flex;gap:10px;justify-content:flex-end}
-.stat{font-size:11px;color:var(--dim);letter-spacing:.1em;padding:4px 0}
-.stat b{color:var(--cyan);font-family:Consolas,monospace}
-.legal{
-  flex:0 0 auto;margin:0;padding:9px 14px 10px;
-  background:#080a0e;border-top:1px solid var(--edge);
-  font-size:10.5px;color:var(--dim);line-height:1.65;text-align:center;
-}
-.legal a{color:#8aa0c0;margin-left:6px}
-.legal br{display:none}
-.legal span{display:inline-block;margin:0 .35em}
-/* ============ スマートフォン向け操作系 ============
-   指で押しやすい大きさに組み替える。PC（769px以上）は従来どおり。 */
-@media (max-width:768px){
-  .controls{
-    padding:10px 10px 12px;gap:8px;
-    display:flex;flex-direction:column;flex-wrap:nowrap;
-    position:sticky;bottom:0;z-index:5;
-    box-shadow:0 -8px 20px rgba(0,0,0,.45);
-  }
-  .controls .grpPlay{display:block}
-  .controls .grpStop{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-  .controls .grpSub{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.ok{font-size:11px;color:#5ce08a;line-height:1.6;margin-bottom:10px}
 
-  /* レバーオン */
-  #btnSpin{
-    width:100%;min-height:62px;font-size:19px;letter-spacing:.12em;border-radius:14px;
-    box-shadow:0 4px 0 #b57a10;
-  }
-  #btnSpin:active{transform:translateY(3px);box-shadow:0 1px 0 #b57a10}
-  #btnSpin .key{display:none}
-
-  /* ストップボタン */
-  .btnStop{
-    width:100%;min-height:84px;font-size:26px;font-weight:900;letter-spacing:.1em;
-    border-radius:16px;background:linear-gradient(180deg,#39465c,#232c3c);
-    border:2px solid #55698c;box-shadow:0 4px 0 #131925;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
-  }
-  .btnStop .key{font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.1em;margin:0}
-  .btnStop:active{transform:translateY(3px);box-shadow:0 1px 0 #131925;background:#4a5b78}
-  .btnStop:disabled{opacity:.35;box-shadow:none;transform:none}
-
-  /* その他のボタン全般をタップしやすく */
-  button{min-height:46px;padding:11px 14px;font-size:14px;border-radius:10px}
-  .grpSub button{min-height:52px}
-  .btnrow{gap:8px}
-  .btnrow button{min-height:46px;font-size:13px;padding:10px 6px}
-  .atbl button{min-height:38px;padding:8px 10px;font-size:12px}
-  .abar button{min-height:52px;font-size:15px;width:100%}
-
-  /* 入力欄（iOSの自動ズーム防止のため16px以上） */
-  .fld input,.fld select,.af input,.af select,.af textarea,.atbl input,#selUser{
-    min-height:46px;font-size:16px;
-  }
-  .af textarea{min-height:96px}
-  #selUser{max-width:none;flex:1}
-
-  /* モーダルを画面下から出す（親指で届く位置） */
-  .modal{align-items:flex-end;padding:0}
-  .mbox{max-width:none;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:92vh}
-  .mbox .btnrow button{min-height:50px;font-size:15px}
-
-  /* 画面を広く使う */
-  .main{padding:8px 8px 0}
-  .side{max-height:none;padding-right:0}
-  .cabinet{min-width:0}
-  .hint{display:none}
-  .lamp{width:56px;height:56px;top:8px;right:10px}
-  .legal{font-size:9.5px;line-height:1.55;padding:7px 10px calc(7px + env(safe-area-inset-bottom))}
-  .admin{padding:14px 10px 40px}
-  .agrid{grid-template-columns:1fr 1fr}
-}
-@media (max-width:768px) and (max-height:720px){
-  :root{--cell:clamp(44px,8vh,66px)}
-}
-
-@media (max-width:1040px){
-  .main{padding:10px 8px}
-  .wrap{flex-direction:column;align-items:center}
-  .cabinet{width:min(660px,96vw)}
-  .side{width:min(660px,96vw);max-height:none}
-}
-.syncdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4a5568;margin-right:6px;vertical-align:middle}
-.syncdot.on{background:#5ce08a} .syncdot.err{background:var(--red)} .syncdot.busy{background:var(--amber)}
+#gate{position:fixed;inset:0;z-index:80;background:radial-gradient(ellipse at 50% 0%,#1a2130,#05070b 70%);
+  display:flex;align-items:center;justify-content:center;padding:20px;overflow:auto}
+#gate[hidden]{display:none}
+.gbox{width:100%;max-width:430px;background:var(--cab);border:1px solid var(--edge);
+  border-radius:16px;padding:26px 24px;box-shadow:0 24px 70px rgba(0,0,0,.9)}
+.gbox .brand{font-size:26px;margin-bottom:2px}
+.gbox .sub{margin-bottom:20px}
+.tabs{display:flex;gap:6px;margin-bottom:16px}
+.tabs button{flex:1;padding:9px 4px;font-size:12px}
+.tabs button.act{background:linear-gradient(180deg,#ffcf5a,var(--amber2));color:#3a1a00;border-color:#ffd98a}
+.pane[hidden]{display:none}
+.paygrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.paygrid .fld{margin-bottom:0}
+.paygrid{margin-bottom:12px}
+.ahead{font-size:11px;letter-spacing:.16em;color:var(--amber);margin:16px 0 8px;
+  border-bottom:1px solid var(--edge);padding-bottom:5px}
+.mbox{max-width:460px}
 </style>
 </head>
 <body>
-<div class="main">
+
+<!-- ============ 最初の画面：ルーム参加 ============ -->
+<div id="gate">
+  <div class="gbox">
+    <div class="brand">GYRO SEVEN</div>
+    <div class="sub">R O O M &nbsp; L O G I N</div>
+
+    <div class="tabs">
+      <button id="tabJoin" class="act">ルームに参加</button>
+      <button id="tabNew">ルームを作成</button>
+      <button id="tabSolo">1人で遊ぶ</button>
+    </div>
+
+    <!-- 参加 -->
+    <div class="pane" id="paneJoin">
+      <div class="fld"><label>GAS ウェブアプリ URL（空欄ならこの端末内ルーム）</label>
+        <input type="text" id="jUrl" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off"></div>
+      <div class="fld"><label>ルームID</label>
+        <input type="text" id="jId" placeholder="例）lab2026" autocomplete="off"></div>
+      <div class="fld"><label>パスワード</label>
+        <input type="password" id="jPass" autocomplete="off"></div>
+      <div class="warn" id="jErr" hidden></div>
+      <button class="primary" id="btnJoin" style="width:100%">このルームに参加する</button>
+      <div class="note">参加しても、そのルームの設定（確率・出玉数）は変更されません。参加情報はこの端末に保存され、次回から自動で入ります。</div>
+    </div>
+
+    <!-- 作成 -->
+    <div class="pane" id="paneNew" hidden>
+      <div class="fld"><label>GAS ウェブアプリ URL（空欄ならこの端末内ルーム）</label>
+        <input type="text" id="nUrl" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off"></div>
+      <div class="fld"><label>ルームID（半角英数）</label>
+        <input type="text" id="nId" placeholder="例）lab2026" autocomplete="off"></div>
+      <div class="fld"><label>パスワード</label>
+        <input type="password" id="nPass" autocomplete="off"></div>
+      <div class="fld"><label>設定（ボーナス確率）</label>
+        <select id="nSetting"><option>1</option><option>2</option><option>3</option>
+          <option>4</option><option>5</option><option>6</option></select></div>
+      <div class="paygrid">
+        <div class="fld"><label>BIG 同色7</label><input type="number" id="nBig" value="252" min="0"></div>
+        <div class="fld"><label>異色7そろい</label><input type="number" id="nMix7" value="180" min="0"></div>
+        <div class="fld"><label>7×2 + BAR</label><input type="number" id="nMix2" value="120" min="0"></div>
+        <div class="fld"><label>7×1 + BAR×2</label><input type="number" id="nMix1" value="80" min="0"></div>
+        <div class="fld"><label>REG BARそろい</label><input type="number" id="nReg" value="96" min="0"></div>
+        <div class="fld"><label>BET（1G）</label><input type="number" id="nBet" value="3" min="1" max="3"></div>
+      </div>
+      <div class="warn" id="nErr" hidden></div>
+      <button class="primary" id="btnNew" style="width:100%;margin-top:6px">ルームを作成する</button>
+      <div class="note">作成時の設定はサーバー（またはこの端末）に保存され、あとから誰が参加してもリセットされません。</div>
+    </div>
+
+    <!-- ソロ -->
+    <div class="pane" id="paneSolo" hidden>
+      <div class="note" style="margin:0 0 14px">ルームを使わず、この端末だけで遊びます。設定はこの端末に保存されます。</div>
+      <button class="primary" id="btnSolo" style="width:100%">1人で遊ぶ</button>
+    </div>
+  </div>
+</div>
+
 <div class="wrap">
 
 <!-- ============ 筐体 ============ -->
@@ -319,19 +297,21 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--amber)}
   <div class="panel">
     <div class="brand">GYRO SEVEN</div>
     <div class="sub">A - T Y P E &nbsp; 3 R E E L</div>
-    <div class="who">PLAYER : <b id="whoName">-</b></div>
+    <div class="who">PLAYER : <b id="whoName">-</b> ／ ROOM : <b id="whoRoom">-</b></div>
     <div class="lamp" id="lamp">CHANCE</div>
   </div>
 
   <div class="reelarea">
-    <div class="reel"><div class="strip" id="strip0"></div></div>
-    <div class="reel"><div class="strip" id="strip1"></div></div>
-    <div class="reel"><div class="strip" id="strip2"></div></div>
-    <div class="payline"></div>
+    <div class="reelbox" id="reelbox">
+      <div class="reel"><div class="strip" id="strip0"></div></div>
+      <div class="reel"><div class="strip" id="strip1"></div></div>
+      <div class="reel"><div class="strip" id="strip2"></div></div>
+      <svg id="lines" viewBox="0 0 374 288" preserveAspectRatio="none"></svg>
+    </div>
   </div>
 
   <div class="meters">
-    <div class="meter"><div class="lb">CREDIT</div><div class="vl" id="mCredit">50</div></div>
+    <div class="meter"><div class="lb">CREDIT</div><div class="vl" id="mCredit">0</div></div>
     <div class="meter"><div class="lb">PAYOUT</div><div class="vl" id="mPay">0</div></div>
     <div class="meter"><div class="lb">DIFF</div><div class="vl cy" id="mDiff">0</div></div>
     <div class="meter"><div class="lb">BANK 持ち球</div><div class="vl gr" id="mBank">0</div></div>
@@ -341,47 +321,49 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--amber)}
   <div class="msg" id="msg">MAX BET でスタート</div>
 
   <div class="controls">
-    <div class="grpPlay">
-      <button class="primary" id="btnSpin"><span class="lbl">レバーオン</span><span class="key">（Enter / Space）</span></button>
-    </div>
-    <div class="grpStop">
-      <button class="btnStop" data-reel="0"><span class="lbl">左</span><span class="key">1</span></button>
-      <button class="btnStop" data-reel="1"><span class="lbl">中</span><span class="key">2</span></button>
-      <button class="btnStop" data-reel="2"><span class="lbl">右</span><span class="key">3</span></button>
-    </div>
-    <div class="grpSub">
-      <button id="btnBorrow">借 入</button>
-      <button id="btnRepay">返 済</button>
-      <button id="btnRefill">持ち球から補充</button>
-      <button id="btnPayout">払い出し（精算）</button>
-    </div>
+    <button class="primary" id="btnSpin">レバーオン（Enter / Space）</button>
+    <button class="btnStop" data-reel="0">左 1</button>
+    <button class="btnStop" data-reel="1">中 2</button>
+    <button class="btnStop" data-reel="2">右 3</button>
+    <button id="btnBorrow">借 入</button>
+    <button id="btnRepay">返 済</button>
+    <button id="btnRefill">持ち球から +50</button>
+    <button id="btnPayout">払い出し（精算）</button>
   </div>
   <div class="hint">
-    <kbd>Enter</kbd> / <kbd>Space</kbd> で回転開始<br>
-    <kbd>Enter</kbd>×3 … 左→中→右の順に停止　｜　<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>（テンキー可） … 左・中・右を好きな順で停止<br>
-    交代するときは「払い出し（精算）」でクレジットを持ち球に移してください<br>
-    メダルは<b>借入</b>で調達 … 金利分が上乗せされた枚数を<b>返済</b>する必要があります
+    <kbd>Enter</kbd> / <kbd>Space</kbd> で回転開始　｜　<kbd>Enter</kbd>×3 … 左→中→右<br>
+    <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>（テンキー可）… 左・中・右を好きな順で停止<br>
+    入賞ラインは<b>上段・中段・下段・斜め2本の計5ライン</b>（縦はそろいません）。<br>
+    成立するのは<b>1ゲームにつき1ラインだけ</b>。7はBARで代替できますが出玉は少なくなります。
   </div>
 </div>
 
 <!-- ============ サイド ============ -->
 <div class="side">
   <div class="card">
-    <h2>PLAYER</h2>
-    <div class="row"><span>プレイヤー</span>
-      <select id="selUser"></select>
+    <h2>ROOM</h2>
+    <div class="row"><span>ルームID</span><b id="dRoomId">-</b></div>
+    <div class="row"><span>接続</span><b><span class="badge" id="dRoomMode">-</span></b></div>
+    <div class="row"><span>最終同期</span><b id="dRoomSync">-</b></div>
+    <div class="btnrow">
+      <button id="btnSync">今すぐ同期</button>
+      <button id="btnLogout">ログアウト</button>
     </div>
+    <div class="note">ルーム設定はサーバー側に保存されます。誰が新しく参加しても確率・出玉数はリセットされません。</div>
+  </div>
+
+  <div class="card">
+    <h2>PLAYER</h2>
+    <div class="row"><span>プレイヤー</span><select id="selUser"></select></div>
     <div class="row"><span>持ち球</span><b id="dBank">0</b></div>
     <div class="row"><span>クレジット</span><b id="dCredit">0</b></div>
-    
     <div class="row"><span>純資産（持球+CR-借金）</span><b id="dNet">0</b></div>
     <div class="btnrow">
       <button id="btnNewUser">新規</button>
       <button id="btnRenameUser">名前変更</button>
       <button id="btnDelUser">削除</button>
     </div>
-    <div class="stat" id="syncStat"><span class="syncdot"></span>同期：オフ（この端末のみ）</div>
-    <div class="note">プレイヤーごとに持ち球・クレジット・成績が保存されます。同期を設定すると複数端末で持ち球を共有できます。</div>
+    <div class="note">プレイヤーごとの持ち球・成績はこの端末に保存されます。ルーム設定とは別管理です。</div>
   </div>
 
   <div class="card">
@@ -394,7 +376,6 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--amber)}
       <button id="btnBorrow2">借入する</button>
       <button id="btnRepay2">返済する</button>
     </div>
-    <div class="note">借入時に金利分を上乗せした額が借金になります。返済は手動のみ。GMは借りるほど金利が上がります。</div>
   </div>
 
   <div class="card">
@@ -402,46 +383,31 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--amber)}
     <div class="row"><span>総ゲーム数</span><b id="dG">0</b></div>
     <div class="row"><span>BIG</span><b id="dBB">0</b></div>
     <div class="row"><span>REG</span><b id="dRB">0</b></div>
-    <div class="row odds"><span>BIG確率</span><b id="dPB">-</b></div>
-    <div class="row odds"><span>REG確率</span><b id="dPR">-</b></div>
-    <div class="row odds"><span>合成確率</span><b id="dPT">-</b></div>
+    <div class="row"><span>BIG確率</span><b id="dPB">-</b></div>
+    <div class="row"><span>REG確率</span><b id="dPR">-</b></div>
+    <div class="row"><span>合成確率</span><b id="dPT">-</b></div>
     <div class="row"><span>差枚数</span><b id="dDiff">0</b></div>
   </div>
 
-  <div class="card" id="cardMachine">
-    <h2>MACHINE</h2>
-    <div class="row" id="rowSetting"><span>設定</span>
-      <select id="selSetting">
-        <option>1</option><option>2</option><option>3</option>
-        <option>4</option><option>5</option><option>6</option>
-      </select>
-    </div>
-    <label class="sw"><input type="checkbox" id="chkAssist" checked>目押しアシスト（ボーナス自動引込）</label>
+
+  <div class="card">
+    <h2>目押し / 演出</h2>
+    <label class="sw"><input type="checkbox" id="chkMeoshi" checked>目押しモード（リール低速）</label>
+    <label class="sw"><input type="checkbox" id="chkNoSlip">完全目押し（スベリ0・引き込みなし）</label>
+    <label class="sw"><input type="checkbox" id="chkAssist" checked>ボーナス自動引込（アシスト）</label>
+    <label class="sw"><input type="checkbox" id="chkIdx">コマ番号を表示</label>
     <label class="sw"><input type="checkbox" id="chkSound" checked>サウンド</label>
+    <div class="note">「完全目押し」をONにすると押した位置でそのまま止まります。OFFのときは最大4コマまでスベリます。</div>
   </div>
 
-  <div class="card" id="cardImage">
+  <div class="card">
     <h2>SYMBOL IMAGE</h2>
     <div class="symgrid" id="symGrid"></div>
     <button style="width:100%;margin-top:12px" id="btnImgReset">画像を全部もどす</button>
-    <div class="note">枠をクリックすると画像ファイルを選べます。画像はお使いの端末のブラウザ内にのみ保存され、外部には送信されません。<br><span style="color:var(--red)">実在機種の画像やキャラクターなど、権利者の許諾がない画像は設定しないでください。</span></div>
+    <div class="note">枠をクリックすると画像ファイルを選べます。絵柄ごとの表示サイズは自動で変わります。</div>
   </div>
 </div>
 
-</div>
-</div>
-
-<div class="admin" id="admin" hidden>
-  <div class="abox">
-    <div class="ahead">
-      <div>
-        <h1>ADMINISTRATOR</h1>
-        <div class="tag">MACHINE &amp; PLAYER CONFIGURATION</div>
-      </div>
-      <button id="aClose">遊技画面へ戻る</button>
-    </div>
-    <div id="adminBody"></div>
-  </div>
 </div>
 
 <div class="modal" id="modal" hidden>
@@ -455,163 +421,380 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--amber)}
   </div>
 </div>
 
-<footer class="legal">
-  <span>本アプリは娯楽目的の遊技シミュレーターです。実在の遊技機・メーカー・商品・団体とは一切関係ありません。</span>
-  <span>メダル・持ち球・借金・金利はすべてゲーム内の架空の数値であり、現金その他の財物と交換することはできません。</span>
-  <span>実際の金銭・財物を賭ける用途には使用しないでください。18歳以上の方を対象としています。</span>
-  <a href="#" id="lkTerms">免責事項・ライセンス</a>
-</footer>
-
 <input type="file" id="fileIn" accept="image/*" hidden>
-<input type="file" id="cfgIn" accept="application/json,.json" hidden>
 
 <script>
 /* =========================================================
-   ストレージ（プライベートモードや file:// でも落ちないように）
-   ========================================================= */
-const LS = (function(){
-  try{
-    localStorage.setItem('__t','1'); localStorage.removeItem('__t');
-    return {get:k=>localStorage.getItem(k), set:(k,v)=>localStorage.setItem(k,v), del:k=>localStorage.removeItem(k)};
-  }catch(e){
-    const m = {};
-    return {get:k=>(k in m ? m[k] : null), set:(k,v)=>{ m[k] = String(v); }, del:k=>{ delete m[k]; }};
-  }
-})();
-
-/* =========================================================
-   シンボル定義
+   1. シンボル定義（sizeで大きさに差をつける）
    ========================================================= */
 const SYM = {
-  R7 :{label:'7',   name:'赤7'},
-  B7 :{label:'7',   name:'青7'},
-  BAR:{label:'BAR', name:'BAR'},
-  BELL:{label:'🔔', name:'ベル'},
-  CHE:{label:'🍒', name:'チェリー'},
-  PIE:{label:'🃏', name:'ピエロ'},
-  GRA:{label:'🍇', name:'ブドウ'},
-  REP:{label:'↻',  name:'リプレイ'}
+  R7 :{label:'7',   name:'赤7',      size:1.35},
+  B7 :{label:'7',   name:'青7',      size:1.35},
+  BAR:{label:'BAR', name:'BAR',      size:1.10},
+  BELL:{label:'🔔', name:'ベル',      size:1.00},
+  PIE:{label:'🃏', name:'ピエロ',    size:0.88},
+  GRA:{label:'🍇', name:'ブドウ',    size:0.76},
+  CHE:{label:'🍒', name:'チェリー',  size:0.64},
+  REP:{label:'↻',  name:'リプレイ',  size:0.55}
 };
-const ORDER = ['R7','B7','BAR','BELL','CHE','PIE','GRA','REP'];
+const ORDER = ['R7','B7','BAR','BELL','PIE','GRA','CHE','REP'];
+const SEVENS = ['R7','B7'], BONUS_SYMS = ['R7','B7','BAR'];
 
-/* =========================================================
-   マシン設定（管理者ページから変更可能／CFG が正）
-   ========================================================= */
-const CFG_KEY = 'slotConfig_v1';
-const DEFAULT_CFG = {
-  brand:'GYRO SEVEN',
-  sub:'A - T Y P E \u00a0 3 R E E L',
-  bet:3, bigPay:252, regPay:96,
-  settings:{1:{big:273,reg:439},2:{big:270,reg:399},3:{big:266,reg:364},
-            4:{big:260,reg:315},5:{big:255,reg:292},6:{big:240,reg:247}},
-  small:[['REP',7.3],['GRA',6.02],['CHE',35],['BELL',1024],['PIE',1024]],
-  pay:{GRA:8, BELL:14, PIE:10, CHE:2},
-  speed:28,
-  strips:null,                       // null なら既定配列
-  gm:{base:0.10, step:0.05, max:0.60},
-  startBank:0, lendUnit:50,
-  setting:1,                         // 現在の設定（1〜6）
-  settingUI:'hidden',                // hidden=表示しない / view=表示のみ / edit=変更可
-  showOdds:true,                     // DATAのBIG確率などを表示するか
-  forceAssist:null,                  // null=自由 / true=常時ON / false=常時OFF
-  allowImageUpload:true,             // 絵柄画像の差し替えを許可するか
-  sync:{enabled:false, url:'', room:'', pass:''},
-  updatedAt:0
-};
-let CFG = JSON.parse(JSON.stringify(DEFAULT_CFG));
-function mergeCfg(base, src){
-  const o = JSON.parse(JSON.stringify(base));
-  Object.keys(src||{}).forEach(k=>{
-    if(src[k] && typeof src[k]==='object' && !Array.isArray(src[k]) && o[k] && typeof o[k]==='object' && !Array.isArray(o[k]))
-      o[k] = mergeCfg(o[k], src[k]);
-    else if(src[k] !== undefined && src[k] !== null) o[k] = src[k];
-  });
-  return o;
-}
-function loadCfg(){
-  try{
-    const d = JSON.parse(LS.get(CFG_KEY));
-    if(d) CFG = mergeCfg(DEFAULT_CFG, d);
-  }catch(e){}
-}
-function saveCfg(touch){
-  if(touch !== false) CFG.updatedAt = now();
-  try{ LS.set(CFG_KEY, JSON.stringify(CFG)); }catch(e){}
-}
-function applyCfg(){
-  SETTINGS = CFG.settings; SMALL = CFG.small; PAY = CFG.pay;
-  BIG_PAY = CFG.bigPay; REG_PAY = CFG.regPay; BET = CFG.bet; SPEED = CFG.speed;
-  if(Array.isArray(CFG.strips) && CFG.strips.length===3 && CFG.strips.every(a=>Array.isArray(a)&&a.length>=3))
-    STRIPS = CFG.strips;
-  else STRIPS = BASE_STRIPS;
-  N = STRIPS[0].length;
-  GM_BASE = CFG.gm.base; GM_STEP = CFG.gm.step; GM_MAX = CFG.gm.max;
-  document.querySelector('.brand').textContent = CFG.brand;
-  document.querySelector('.sub').innerHTML = esc(CFG.sub);
-  document.title = CFG.brand + ' - PACHISLOT SIMULATOR';
-  const selSet = document.getElementById('selSetting');
-  const su = CFG.settingUI;
-  selSet.value = String(Math.min(6, Math.max(1, CFG.setting|0 || 1)));
-  selSet.disabled = (su !== 'edit');
-  document.getElementById('rowSetting').hidden = (su === 'hidden');
-  document.querySelectorAll('.row.odds').forEach(r=>{ r.hidden = !CFG.showOdds; });
-  const chkA = document.getElementById('chkAssist');
-  if(CFG.forceAssist === true){ chkA.checked = true; chkA.disabled = true; }
-  else if(CFG.forceAssist === false){ chkA.checked = false; chkA.disabled = true; }
-  else chkA.disabled = false;
-  document.getElementById('cardImage').hidden = !CFG.allowImageUpload;
-  if(typeof buildStrips === 'function' && document.querySelector('.cell')) buildStrips();
-}
-
-/* リール配列（各21コマ／既定） */
-const BASE_STRIPS = [
- ['R7','GRA','CHE','REP','BELL','GRA','CHE','REP','BAR','GRA','CHE','REP','GRA','PIE','CHE','REP','B7','GRA','CHE','REP','GRA'],
- ['GRA','REP','BELL','GRA','R7','REP','GRA','BELL','REP','GRA','BAR','REP','GRA','BELL','REP','GRA','B7','REP','GRA','PIE','REP'],
- ['REP','GRA','BELL','REP','GRA','R7','REP','GRA','BELL','REP','GRA','BAR','REP','GRA','PIE','REP','GRA','B7','REP','GRA','BELL']
+/* 各リールに全8絵柄を配置（21コマ）。
+   同じ絵柄が3コマ連続する箇所は作らない → 縦は絶対にそろわない。 */
+const STRIPS = [
+ ['R7','GRA','CHE','REP','BELL','GRA','PIE','REP','BAR','CHE','GRA','CHE','REP','GRA','BELL','B7','GRA','REP','CHE','BELL','REP'],
+ ['GRA','REP','BELL','R7','REP','GRA','CHE','REP','BELL','BAR','REP','CHE','GRA','CHE','PIE','REP','GRA','B7','REP','GRA','BELL'],
+ ['REP','GRA','BELL','REP','CHE','R7','REP','GRA','PIE','REP','BAR','GRA','REP','BELL','CHE','GRA','CHE','REP','B7','GRA','BELL']
 ];
-let STRIPS = BASE_STRIPS;
-let N = 21; let CELL = 96; let SPEED = 28; // コマ/秒（CELLは実寸を測って更新）
+const N = 21;
+let CELL = 96;                     // 実際のセル高さ（CSS変数 --cell に追従）
+function measureCell(){
+  const c = stripEls[0] && stripEls[0].firstElementChild;
+  let h = c ? c.getBoundingClientRect().height : 0;
+  if(!(h > 0)){
+    h = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cell')) || 96;
+  }
+  if(Math.abs(h - CELL) > 0.01){ CELL = h; render(); }
+}
+
+/* 入賞ライン：横3・斜め2 = 5ライン（縦は無し）  [row, col]
+   1ゲームで成立するのは最上位の1ラインだけ。 */
+const LINES = [
+  {n:'上段',   c:[[0,0],[0,1],[0,2]]},
+  {n:'中段',   c:[[1,0],[1,1],[1,2]]},
+  {n:'下段',   c:[[2,0],[2,1],[2,2]]},
+  {n:'右下がり',c:[[0,0],[1,1],[2,2]]},
+  {n:'右上がり',c:[[2,0],[1,1],[0,2]]}
+];
 
 /* 設定別ボーナス確率（分母） */
-let SETTINGS = {
+const SETTINGS = {
   1:{big:273,reg:439}, 2:{big:270,reg:399}, 3:{big:266,reg:364},
   4:{big:260,reg:315}, 5:{big:255,reg:292}, 6:{big:240,reg:247}
 };
-/* 小役（分母） */
-let SMALL = [['REP',7.3],['GRA',6.02],['CHE',35],['BELL',1024],['PIE',1024]];
-let PAY = {GRA:8, BELL:14, PIE:10, CHE:2};
-let BIG_PAY = 252, REG_PAY = 96, BET = 3;
 
 /* =========================================================
-   状態
+   2. ルーム（共有設定）
+   ========================================================= */
+const ROOM_KEY = 'slotRoom_v2';
+const LOCALCFG_PREFIX = 'slotRoomCfg_v2_';
+const DEFAULT_CFG = {
+  setting:1, bet:3,
+  pay:{ big:252, mix7:180, mix2:120, mix1:80, reg:96,
+        GRA:6, BELL:10, PIE:8, CHE:2 },
+  prob:{ big:0, reg:0 },
+  speed:{ fast:26, slow:11 },                              // コマ/秒                                   // 0 = 設定1〜6の値を使う
+  small:{ REP:7.3, GRA:6.02, CHE:35, BELL:1024, PIE:1024 } // 分母
+};
+const SMALL_KEYS = ['REP','GRA','CHE','BELL','PIE'];
+function bigDen(){ return CFG.prob.big > 0 ? CFG.prob.big : (SETTINGS[CFG.setting]||SETTINGS[1]).big; }
+function regDen(){ return CFG.prob.reg > 0 ? CFG.prob.reg : (SETTINGS[CFG.setting]||SETTINGS[1]).reg; }
+let ROOM = null;   // {mode:'gas'|'local'|'solo', url, id, pass}
+let CFG  = JSON.parse(JSON.stringify(DEFAULT_CFG));
+let syncTimer = null;
+
+function cfgMerge(o){
+  const c = JSON.parse(JSON.stringify(DEFAULT_CFG));
+  if(o && typeof o==='object'){
+    if(o.setting) c.setting = Math.min(6,Math.max(1,+o.setting||1));
+    if(o.bet)     c.bet     = Math.min(3,Math.max(1,+o.bet||3));
+    if(o.pay) Object.keys(c.pay).forEach(k=>{ if(o.pay[k]!==undefined) c.pay[k]=Math.max(0,Math.floor(+o.pay[k])||0); });
+    if(o.prob) Object.keys(c.prob).forEach(k=>{ if(o.prob[k]!==undefined) c.prob[k]=Math.max(0,Math.floor(+o.prob[k])||0); });
+    if(o.speed) Object.keys(c.speed).forEach(k=>{ const v=+o.speed[k]; if(v>0) c.speed[k]=Math.min(60,Math.max(2,v)); });
+    if(o.small) SMALL_KEYS.forEach(k=>{ const v=+o.small[k]; if(v>0) c.small[k]=v; });
+  }
+  return c;
+}
+async function api(url, payload){
+  const res = await fetch(url, {method:'POST', body:JSON.stringify(payload)});
+  const txt = await res.text();
+  let j; try{ j = JSON.parse(txt); }catch(e){ throw new Error('サーバー応答が不正です'); }
+  if(!j.ok) throw new Error(j.error || '不明なエラー');
+  return j;
+}
+function localCfgGet(id){
+  try{ const s = localStorage.getItem(LOCALCFG_PREFIX+id); return s ? JSON.parse(s) : null; }catch(e){ return null; }
+}
+function localCfgSet(id, obj){
+  try{ localStorage.setItem(LOCALCFG_PREFIX+id, JSON.stringify(obj)); }catch(e){}
+}
+
+/* --- 参加 --- */
+async function roomJoin(url, id, pass){
+  if(!id) throw new Error('ルームIDを入力してください');
+  if(url){
+    const r = await api(url, {action:'join', room:id, pass:pass});
+    ROOM = {mode:'gas', url:url, id:id, pass:pass};
+    CFG  = cfgMerge(r.config);
+  }else{
+    const rec = localCfgGet(id);
+    if(!rec) throw new Error('この端末にそのルームはありません。「ルームを作成」してください');
+    if(rec.pass !== pass) throw new Error('パスワードが違います');
+    ROOM = {mode:'local', url:'', id:id, pass:pass};
+    CFG  = cfgMerge(rec.config);
+  }
+  afterRoom();
+}
+/* --- 作成 --- */
+async function roomCreate(url, id, pass, cfg){
+  if(!id) throw new Error('ルームIDを入力してください');
+  if(!pass) throw new Error('パスワードを入力してください');
+  if(url){
+    await api(url, {action:'create', room:id, pass:pass, config:cfg});
+    ROOM = {mode:'gas', url:url, id:id, pass:pass};
+  }else{
+    if(localCfgGet(id)) throw new Error('同じIDのルームがこの端末に既にあります');
+    localCfgSet(id, {pass:pass, config:cfg});
+    ROOM = {mode:'local', url:'', id:id, pass:pass};
+  }
+  CFG = cfgMerge(cfg);
+  afterRoom();
+}
+function roomSolo(){
+  ROOM = {mode:'solo', url:'', id:'SOLO', pass:''};
+  const rec = localCfgGet('__solo__');
+  CFG = cfgMerge(rec ? rec.config : DEFAULT_CFG);
+  afterRoom();
+}
+/* --- 設定の保存（ここでだけサーバーに書く） --- */
+async function roomSaveCfg(cfg){
+  if(!ROOM) return;
+  if(ROOM.mode==='gas'){
+    await api(ROOM.url, {action:'save', room:ROOM.id, pass:ROOM.pass, config:cfg});
+  }else if(ROOM.mode==='local'){
+    const rec = localCfgGet(ROOM.id) || {pass:ROOM.pass};
+    rec.config = cfg; localCfgSet(ROOM.id, rec);
+  }else{
+    localCfgSet('__solo__', {pass:'', config:cfg});
+  }
+  CFG = cfgMerge(cfg);
+  applyCfgToUI();
+}
+/* --- 同期（読むだけ。参加や再読込では絶対に書かない） --- */
+async function roomSync(silent){
+  if(!ROOM) return;
+  if(ROOM.mode==='gas'){
+    try{
+      const r = await api(ROOM.url, {action:'get', room:ROOM.id, pass:ROOM.pass});
+      CFG = cfgMerge(r.config); applyCfgToUI(); stampSync(true);
+      if(!silent) setMsg('ルーム設定を同期しました');
+    }catch(e){
+      stampSync(false);
+      if(!silent) setMsg('同期に失敗：' + e.message);
+    }
+  }else{
+    const rec = localCfgGet(ROOM.mode==='solo' ? '__solo__' : ROOM.id);
+    if(rec) { CFG = cfgMerge(rec.config); applyCfgToUI(); }
+    stampSync(true);
+  }
+}
+function stampSync(ok){
+  const d = new Date();
+  document.getElementById('dRoomSync').textContent =
+    (ok?'':'× ') + ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':'+('0'+d.getSeconds()).slice(-2);
+}
+function saveRoomLocal(){
+  try{ localStorage.setItem(ROOM_KEY, JSON.stringify(ROOM)); }catch(e){}
+}
+function afterRoom(){
+  saveRoomLocal();
+  document.getElementById('gate').hidden = true;
+  document.getElementById('dRoomId').textContent  = ROOM.id;
+  document.getElementById('whoRoom').textContent  = ROOM.id;
+  const b = document.getElementById('dRoomMode');
+  b.textContent = ROOM.mode==='gas' ? 'GAS 共有' : (ROOM.mode==='local' ? '端末内ルーム' : 'ソロ');
+  b.className = 'badge ' + (ROOM.mode==='gas' ? 'on' : 'off');
+  applyCfgToUI(); stampSync(true);
+  if(syncTimer) clearInterval(syncTimer);
+  if(ROOM.mode==='gas') syncTimer = setInterval(()=>{ if(S.phase==='idle') roomSync(true); }, 30000);
+  update();
+}
+function roomLogout(){
+  ROOM = null;
+  try{ localStorage.removeItem(ROOM_KEY); }catch(e){}
+  if(syncTimer) clearInterval(syncTimer);
+  document.getElementById('gate').hidden = false;
+}
+function applyCfgToUI(){
+  const t = (id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
+  t('vSetting', '設定'+CFG.setting + (CFG.prob.big||CFG.prob.reg ? '（確率上書き中）' : ''));
+  t('vPBig', '1/'+bigDen());
+  t('vPReg', '1/'+regDen());
+  t('vBet',  CFG.bet+'枚');
+  t('vSpeed', CFG.speed.fast+' / '+CFG.speed.slow);
+  t('vBig',  CFG.pay.big+'枚');
+  t('vMix7', CFG.pay.mix7+'枚');
+  t('vMix2', CFG.pay.mix2+'枚');
+  t('vMix1', CFG.pay.mix1+'枚');
+  t('vReg',  CFG.pay.reg+'枚');
+  t('vGB',   CFG.pay.GRA+' / '+CFG.pay.BELL);
+  t('vPC',   CFG.pay.PIE+' / '+CFG.pay.CHE);
+}
+
+/* ゲート UI */
+const panes = {Join:'paneJoin', New:'paneNew', Solo:'paneSolo'};
+['Join','New','Solo'].forEach(k=>{
+  document.getElementById('tab'+k).onclick = ()=>{
+    ['Join','New','Solo'].forEach(x=>{
+      document.getElementById('tab'+x).classList.toggle('act', x===k);
+      document.getElementById(panes[x]).hidden = (x!==k);
+    });
+  };
+});
+function gErr(id,msg){ const e=document.getElementById(id); e.textContent=msg; e.hidden=!msg; }
+document.getElementById('btnJoin').onclick = async ()=>{
+  gErr('jErr','');
+  try{
+    await roomJoin(document.getElementById('jUrl').value.trim(),
+                   document.getElementById('jId').value.trim(),
+                   document.getElementById('jPass').value);
+    setMsg('ルーム「'+ROOM.id+'」に参加しました', true);
+  }catch(e){ gErr('jErr', e.message); }
+};
+document.getElementById('btnNew').onclick = async ()=>{
+  gErr('nErr','');
+  const cfg = cfgMerge({
+    setting:+document.getElementById('nSetting').value,
+    bet:+document.getElementById('nBet').value,
+    pay:{ big:+document.getElementById('nBig').value, mix7:+document.getElementById('nMix7').value,
+          mix2:+document.getElementById('nMix2').value, mix1:+document.getElementById('nMix1').value,
+          reg:+document.getElementById('nReg').value }
+  });
+  try{
+    await roomCreate(document.getElementById('nUrl').value.trim(),
+                     document.getElementById('nId').value.trim(),
+                     document.getElementById('nPass').value, cfg);
+    setMsg('ルーム「'+ROOM.id+'」を作成しました', true);
+  }catch(e){ gErr('nErr', e.message); }
+};
+document.getElementById('btnSolo').onclick = ()=>{ roomSolo(); };
+document.getElementById('btnSync').onclick   = ()=> roomSync(false);
+document.getElementById('btnLogout').onclick = ()=>{
+  openModal('ログアウト — LOGOUT',
+    '<div class="calc">ルーム <b>'+esc(ROOM?ROOM.id:'-')+'</b></div>'+
+    '<div class="note">ルーム側の設定は消えません。この端末の参加情報だけを削除します。プレイヤーの持ち球データは残ります。</div>',
+    ()=>{ closeModal(); roomLogout(); }, 'ログアウト');
+};
+/* =========================================================
+   2-b. 管理者ページ（隠しコマンド administrator で開く）
+   ========================================================= */
+const ADMIN_CMD = 'administrator';
+function openAdmin(){
+  const P = CFG.pay, PR = CFG.prob, SM = CFG.small;
+  const num = (id,v,step)=>'<input type="number" id="'+id+'" value="'+v+'" min="0" step="'+(step||1)+'">';
+  openModal('管理者ページ — ADMINISTRATOR',
+    '<div class="calc">ルーム <b>'+esc(ROOM?ROOM.id:'-')+'</b><br>接続 <b>'+
+      (ROOM&&ROOM.mode==='gas'?'GAS共有':(ROOM&&ROOM.mode==='local'?'端末内':'ソロ'))+'</b></div>'+
+
+    '<div class="ahead">■ 基本</div>'+
+    '<div class="paygrid">'+
+      '<div class="fld"><label>設定（1〜6）</label><select id="aSetting">'+
+        [1,2,3,4,5,6].map(n=>'<option value="'+n+'"'+(n===CFG.setting?' selected':'')+'>'+n+'</option>').join('')+
+      '</select></div>'+
+      '<div class="fld"><label>BET（1G）</label><input type="number" id="aBet" value="'+CFG.bet+'" min="1" max="3"></div>'+
+    '</div>'+
+
+    '<div class="ahead">■ リール回転速度（コマ/秒・2〜60）</div>'+
+    '<div class="paygrid">'+
+      '<div class="fld"><label>通常</label><input type="number" id="aSpFast" value="'+CFG.speed.fast+'" min="2" max="60" step="1"></div>'+
+      '<div class="fld"><label>目押しモード</label><input type="number" id="aSpSlow" value="'+CFG.speed.slow+'" min="2" max="60" step="1"></div>'+
+    '</div>'+
+    '<div class="note" style="margin:-4px 0 0">数値が大きいほど速く回ります。目押しするなら8〜12あたりが目安です。</div>'+
+
+    '<div class="ahead">■ ボーナス確率（分母 / 0なら設定値を使用）</div>'+
+    '<div class="paygrid">'+
+      '<div class="fld"><label>BIG 1/</label>'+num('aPBig',PR.big)+'</div>'+
+      '<div class="fld"><label>REG 1/</label>'+num('aPReg',PR.reg)+'</div>'+
+    '</div>'+
+    '<div class="note" style="margin:6px 0 0">現在の実効値：BIG 1/'+bigDen()+' ／ REG 1/'+regDen()+'</div>'+
+
+    '<div class="ahead">■ 小役成立確率（分母）</div>'+
+    '<div class="paygrid">'+
+      '<div class="fld"><label>リプレイ 1/</label>'+num('aSREP',SM.REP,0.01)+'</div>'+
+      '<div class="fld"><label>ブドウ 1/</label>'+num('aSGRA',SM.GRA,0.01)+'</div>'+
+      '<div class="fld"><label>チェリー 1/</label>'+num('aSCHE',SM.CHE,0.01)+'</div>'+
+      '<div class="fld"><label>ベル 1/</label>'+num('aSBELL',SM.BELL,0.01)+'</div>'+
+      '<div class="fld"><label>ピエロ 1/</label>'+num('aSPIE',SM.PIE,0.01)+'</div>'+
+    '</div>'+
+
+    '<div class="ahead">■ 出玉数（枚）</div>'+
+    '<div class="paygrid">'+
+      '<div class="fld"><label>BIG 同色7そろい</label>'+num('aBig',P.big)+'</div>'+
+      '<div class="fld"><label>異色7そろい</label>'+num('aMix7',P.mix7)+'</div>'+
+      '<div class="fld"><label>7×2 + BAR</label>'+num('aMix2',P.mix2)+'</div>'+
+      '<div class="fld"><label>7×1 + BAR×2</label>'+num('aMix1',P.mix1)+'</div>'+
+      '<div class="fld"><label>REG BARそろい</label>'+num('aReg',P.reg)+'</div>'+
+      '<div class="fld"><label>ブドウ</label>'+num('aGRA',P.GRA)+'</div>'+
+      '<div class="fld"><label>ベル</label>'+num('aBELL',P.BELL)+'</div>'+
+      '<div class="fld"><label>ピエロ</label>'+num('aPIE',P.PIE)+'</div>'+
+      '<div class="fld"><label>チェリー</label>'+num('aCHE',P.CHE)+'</div>'+
+    '</div>'+
+
+    '<div class="ahead">■ 反映</div>'+
+    '<div class="note" style="margin:0 0 10px">保存するとルーム全員に共有され、新しい人が参加してもリセットされません。</div>'+
+    '<div class="btnrow" style="margin-top:0">'+
+      '<button id="aDefault">既定値に戻す</button>'+
+      '<button id="aReload">サーバーから再読込</button>'+
+    '</div>'+
+    '<div class="ahead">■ プレイヤー成績</div>'+
+    '<div class="btnrow" style="margin-top:0">'+
+      '<button id="aResetStats">現在のプレイヤーの成績をリセット</button>'+
+    '</div>'+
+    '<div class="warn" id="aErr" hidden></div><div class="ok" id="aOk" hidden></div>',
+    async ()=>{
+      const g = id=>+document.getElementById(id).value;
+      const cfg = cfgMerge({
+        setting:g('aSetting'), bet:g('aBet'),
+        prob:{ big:g('aPBig'), reg:g('aPReg') },
+        speed:{ fast:g('aSpFast'), slow:g('aSpSlow') },
+        small:{ REP:g('aSREP'), GRA:g('aSGRA'), CHE:g('aSCHE'), BELL:g('aSBELL'), PIE:g('aSPIE') },
+        pay:{ big:g('aBig'), mix7:g('aMix7'), mix2:g('aMix2'), mix1:g('aMix1'), reg:g('aReg'),
+              GRA:g('aGRA'), BELL:g('aBELL'), PIE:g('aPIE'), CHE:g('aCHE') }
+      });
+      const err=document.getElementById('aErr'), ok=document.getElementById('aOk');
+      err.hidden=true; ok.hidden=true;
+      try{
+        await roomSaveCfg(cfg);
+        ok.textContent='保存しました。ルーム全員に反映されます。'; ok.hidden=false;
+        setMsg('管理者：ルーム設定を保存しました', true); update();
+      }catch(e){ err.textContent='保存に失敗：'+e.message; err.hidden=false; }
+    }, 'ルームに保存');
+
+  document.getElementById('aDefault').onclick = ()=>{
+    const d = JSON.parse(JSON.stringify(DEFAULT_CFG));
+    d.setting = CFG.setting;
+    CFG = d; closeModal(); openAdmin();
+  };
+  document.getElementById('aReload').onclick = async ()=>{ await roomSync(true); closeModal(); openAdmin(); };
+  document.getElementById('aResetStats').onclick = ()=>{ closeModal(); openResetStats(); };
+}
+
+/* =========================================================
+   3. 状態
    ========================================================= */
 const S = {
-  credit:50, bank:0, lend:0, debts:[], gmLoans:0, payout:0, inTotal:0, outTotal:0,
+  credit:0, bank:0, lend:0, debts:[], gmLoans:0, payout:0, inTotal:0, outTotal:0,
   games:0, bb:0, rb:0,
-  phase:'idle',                 // idle | spin | eval
-  flagBonus:null,               // 'BIG' | 'REG'
-  flagBonusSym:null,            // 'R7' | 'B7' | 'BAR'
-  flagSmall:null,
-  lampOn:false, lampPending:false,
-  replay:false,
+  phase:'idle',
+  flagBonus:null, flagBonusSym:null, flagSmall:null,
+  lampOn:false, lampPending:false, replay:false,
   reels:[{r:0,spin:false,stop:null,t0:0,from:0},
          {r:0,spin:false,stop:null,t0:0,from:0},
          {r:0,spin:false,stop:null,t0:0,from:0}],
-  stopCount:0, stopped:[]
+  stopCount:0, stopPos:[null,null,null]
 };
 let images = {};
 const IMG_KEY = 'slotSymbolImages_v1';
-try{ images = JSON.parse(LS.get(IMG_KEY) || '{}'); }catch(e){ images = {}; }
+try{ images = JSON.parse(localStorage.getItem(IMG_KEY) || '{}'); }catch(e){ images = {}; }
 
 /* =========================================================
-   プレイヤー管理（持ち球保存）
+   4. プレイヤー管理
    ========================================================= */
 const USERS_KEY = 'slotUsers_v1';
-let clockOffset = 0;                     // サーバー時刻 - 端末時刻
-function now(){ return Date.now() + clockOffset; }
-let DB = {users:{}, current:null, seq:1, deleted:{}};
+let DB = {users:{}, current:null, seq:1};
 const F = ['credit','bank','lend','games','bb','rb','inTotal','outTotal','debts','gmLoans'];
-let GM_BASE = 0.10, GM_STEP = 0.05, GM_MAX = 0.60;
+const GM_BASE = 0.10, GM_STEP = 0.05, GM_MAX = 0.60;
 function gmRate(n){ return Math.min(GM_BASE + GM_STEP*(n===undefined?S.gmLoans:n), GM_MAX); }
 function totalDebt(){ return S.debts.reduce((a,d)=>a+d.amount,0); }
 function lentOut(){
@@ -627,119 +810,80 @@ function creditorName(d){
   return DB.users[d.from] ? DB.users[d.from].name : '（退場者）';
 }
 function esc(t){ return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-
 function loadDB(){
-  try{
-    const d = JSON.parse(LS.get(USERS_KEY));
-    if(d && d.users) DB = Object.assign({users:{},current:null,seq:1,deleted:{}}, d);
-    if(!DB.deleted) DB.deleted = {};
-  }catch(e){}
+  try{ const d = JSON.parse(localStorage.getItem(USERS_KEY));
+       if(d && d.users) DB = Object.assign({users:{},current:null,seq:1}, d); }catch(e){}
 }
 function saveDB(){
   captureUser();
-  try{ LS.set(USERS_KEY, JSON.stringify(DB)); }catch(e){}
+  try{ localStorage.setItem(USERS_KEY, JSON.stringify(DB)); }catch(e){}
 }
-/* 端末が自動生成しただけで、まだ何もしていない仮プレイヤーか */
-/* 一度も遊んでいない空のプレイヤー（古い版が作った物も含む） */
-function isEmptyUser(u){
-  return !!u && !u.games && !u.bank && !u.lend && !u.gmLoans && !u.inTotal && !u.outTotal
-      && !(u.debts && u.debts.length) && (!u.credit || u.credit === 50);
-}
-function isPristine(u){
-  return !!u && u.auto === true && !u.games && !u.bank && !u.lend && !u.gmLoans
-      && !(u.debts && u.debts.length) && !u.inTotal && !u.outTotal;
-}
-let lastSig = '';
-function userSig(u){
-  return JSON.stringify([u.name].concat(F.map(k=> u[k])));
-}
-function captureUser(){
-  const u = DB.users[DB.current];
-  if(!u) return;
-  F.forEach(k=> u[k] = S[k]);
-  const sig = userSig(u);
-  if(sig !== lastSig){
-    lastSig = sig;
-    if(u.auto && !isPristine(u)) delete u.auto;
-    u.updatedAt = now();
-    syncSoon();                       // 変化があったときだけ即アップロード
-  }
-}
+function captureUser(){ const u=DB.users[DB.current]; if(!u) return; F.forEach(k=> u[k]=S[k]); }
 function applyUser(id){
-  const u = DB.users[id];
-  if(!u) return;
+  const u = DB.users[id]; if(!u) return;
   DB.current = id;
-  F.forEach(k=> S[k] = (k==='debts') ? JSON.parse(JSON.stringify(u.debts||[])) : (u[k] || 0));
+  F.forEach(k=> S[k] = (k==='debts') ? (u.debts||[]) : (u[k] || 0));
   S.payout = 0; S.replay = false;
-  lastSig = userSig(u);               // 読み込んだ直後は「変化なし」扱い
   renderUsers(); update();
-}
-/* 削除は「消した記録」を残す。これが無いと次の同期でサーバーから復活する。 */
-function deleteUser(id){
-  if(!DB.users[id]) return;
-  DB.deleted[id] = now();
-  delete DB.users[id];
-  if(!Object.keys(DB.users).length){                  // 全員消したら仮プレイヤーを作り直す
-    DB.current = newUser('プレイヤー1', 50);
-    DB.users[DB.current].auto = true;
-  }
-  if(!DB.users[DB.current]) DB.current = Object.keys(DB.users)[0];
-  applyUser(DB.current);
-  saveDB();
-  doSync(true);
-}
-function pruneTombstones(){
-  const cut = now() - 14*24*60*60*1000;
-  Object.keys(DB.deleted).forEach(id=>{ if(DB.deleted[id] < cut) delete DB.deleted[id]; });
 }
 function newUser(name, credit){
   const id = 'u' + (DB.seq++) + '_' + Date.now().toString(36);
   DB.users[id] = {name:name, credit:credit||0, bank:0, lend:0, debts:[], gmLoans:0,
-                  games:0, bb:0, rb:0, inTotal:0, outTotal:0, updatedAt:now()};
+                  games:0, bb:0, rb:0, inTotal:0, outTotal:0};
   return id;
 }
 function renderUsers(){
-  const sel = document.getElementById('selUser');
-  sel.innerHTML = '';
+  const sel = document.getElementById('selUser'); sel.innerHTML='';
   Object.keys(DB.users).forEach(id=>{
-    const o = document.createElement('option');
-    o.value = id; o.textContent = DB.users[id].name;
-    if(id === DB.current) o.selected = true;
-    sel.appendChild(o);
+    const o=document.createElement('option'); o.value=id; o.textContent=DB.users[id].name;
+    if(id===DB.current) o.selected=true; sel.appendChild(o);
   });
   const cur = DB.users[DB.current];
   document.getElementById('whoName').textContent = cur ? cur.name : '-';
 }
 function initUsers(){
   loadDB();
-  if(!Object.keys(DB.users).length){
-    DB.current = newUser('プレイヤー1', 50);
-    DB.users[DB.current].auto = true;      // 端末が自動で作った仮プレイヤー
-  }
+  if(!Object.keys(DB.users).length) DB.current = newUser('プレイヤー1', 50);
   if(!DB.users[DB.current]) DB.current = Object.keys(DB.users)[0];
   applyUser(DB.current);
 }
 
 /* =========================================================
-   描画
+   5. 描画
    ========================================================= */
 const stripEls = [0,1,2].map(i=>document.getElementById('strip'+i));
-
 function buildStrips(){
   stripEls.forEach((el,i)=>{
     el.innerHTML='';
     for(let rep=0; rep<2; rep++){
-      STRIPS[i].forEach(s=>{
+      STRIPS[i].forEach((s,k)=>{
         const d=document.createElement('div');
-        d.className='cell s-'+s;
+        d.className='cell s-'+s+' z-'+s;
         d.dataset.sym=s;
-        d.textContent=SYM[s].label;
+        d.innerHTML = '<span class="idx">'+k+'</span>' + SYM[s].label;
         el.appendChild(d);
       });
     }
   });
   applyImages();
-  measureCell();
+  buildLines();
+}
+function buildLines(){
+  const svg = document.getElementById('lines');
+  const X = [59,187,315], Y = [48,144,240];
+  svg.innerHTML = LINES.map((L,i)=>{
+    const p = L.c.map(([r,c])=> X[c]+','+Y[r]).join(' ');
+    return '<polyline id="ln'+i+'" points="'+p+'" fill="none" stroke="#c8c2b6" stroke-width="2" opacity="0.22"/>';
+  }).join('');
+}
+function highlightLines(idxs){
+  LINES.forEach((L,i)=>{
+    const el = document.getElementById('ln'+i); if(!el) return;
+    const on = idxs.indexOf(i)>=0;
+    el.setAttribute('stroke', on ? '#ff3b47' : '#c8c2b6');
+    el.setAttribute('stroke-width', on ? 5 : 2);
+    el.setAttribute('opacity', on ? 1 : 0.22);
+  });
 }
 function applyImages(){
   document.querySelectorAll('.cell').forEach(c=>{
@@ -753,20 +897,6 @@ function applyImages(){
     else { p.style.backgroundImage=''; p.classList.remove('img'); }
   });
 }
-/* CSSの --cell は画面サイズで変わるため、実寸を測って使う。
-   ここがズレるとリールの停止位置が半コマずれる。 */
-function measureCell(){
-  const c = document.querySelector('.cell');
-  if(!c) return;
-  const h = c.getBoundingClientRect().height;
-  if(h > 0 && Math.abs(h - CELL) > 0.01){ CELL = h; render(); }
-}
-window.addEventListener('resize', measureCell);
-if(window.ResizeObserver){
-  const ro = new ResizeObserver(measureCell);
-  window.addEventListener('load', ()=>{ const r = document.querySelector('.reel'); if(r) ro.observe(r); });
-}
-
 function render(){
   S.reels.forEach((rl,i)=>{
     const off = ((rl.r % N) + N) % N;
@@ -775,92 +905,91 @@ function render(){
 }
 
 /* =========================================================
-   リール制御
+   6. リール制御（目押し対応）
    ========================================================= */
-const midOf = (i,stop)=> STRIPS[i][(stop+1)%N];
-
-function findStop(i, from, target, maxSlip){
-  for(let k=0;k<=maxSlip;k++){
-    if(midOf(i, from+k)===target) return from+k;
-  }
+const cellAt = (i,pos,row)=> STRIPS[i][(((pos+row)%N)+N)%N];
+const midOf  = (i,pos)=> cellAt(i,pos,1);
+function maxSlip(){ return document.getElementById('chkNoSlip').checked ? 0 : 4; }
+function findStop(i, from, target, slip){
+  for(let k=0;k<=slip;k++) if(midOf(i, from+k)===target) return from+k;
   return null;
 }
-function findMiss(i, from){
-  for(let k=0;k<=4;k++){
-    const s=from+k, m=midOf(i,s);
-    if(i===0 && m==='CHE') continue;              // 左中段チェリーを回避
-    const line=[0,1,2].map(j=> j===i ? m : S.stopped[j]);
-    if(line.every(Boolean) && line[0]===line[1] && line[1]===line[2]) continue;
-    return s;
-  }
-  return from;
-}
 function decideStop(i, from){
+  if(document.getElementById('chkNoSlip').checked) return from;   // 完全目押し
   const assist = document.getElementById('chkAssist').checked;
+  const ms = maxSlip();
   if(S.flagBonus){
-    const s = findStop(i, from, S.flagBonusSym, assist ? N-1 : 4);
+    /* ①本来の絵柄を通常スベリ内で探す */
+    let s = findStop(i, from, S.flagBonusSym, ms);
     if(s!==null) return s;
+    /* ②届かなければ 7↔BAR の代替絵柄を通常スベリ内で探す（混在そろい） */
+    const subs = BONUS_SYMS.filter(x=> x!==S.flagBonusSym);
+    for(const sub of subs){
+      s = findStop(i, from, sub, ms);
+      if(s!==null) return s;
+    }
+    /* ③アシストONなら最後に本来の絵柄を全域から引き込む */
+    if(assist){
+      s = findStop(i, from, S.flagBonusSym, N-1);
+      if(s!==null) return s;
+    }
   }
   if(S.flagSmall){
     const rare = (S.flagSmall==='BELL' || S.flagSmall==='PIE');
-    const s = findStop(i, from, S.flagSmall, (rare && assist) ? N-1 : 4);
+    const s = findStop(i, from, S.flagSmall, (rare && assist) ? N-1 : ms);
     if(s!==null) return s;
   }
-  return findMiss(i, from);
+  return from;
 }
 
 /* =========================================================
-   抽選
+   7. 抽選
    ========================================================= */
 function lottery(){
-  const set = SETTINGS[Math.min(6, Math.max(1, CFG.setting|0 || 1))] || SETTINGS[1];
+  const pb = 1/bigDen(), pg = 1/regDen();
   if(!S.flagBonus){
     const rb = Math.random();
-    if(rb < 1/set.big){
+    if(rb < pb){
       S.flagBonus='BIG';
       S.flagBonusSym = Math.random()<0.5 ? 'R7' : 'B7';
       S.lampPending = true;
-    }else if(rb < 1/set.big + 1/set.reg){
-      S.flagBonus='REG'; S.flagBonusSym='BAR';
-      S.lampPending = true;
+    }else if(rb < pb + pg){
+      S.flagBonus='REG'; S.flagBonusSym='BAR'; S.lampPending = true;
     }
   }
   S.flagSmall=null;
   let rs = Math.random(), acc = 0;
-  for(const [sym,den] of SMALL){
-    acc += 1/den;
-    if(rs < acc){ S.flagSmall=sym; break; }
+  for(const k of SMALL_KEYS){
+    const den = CFG.small[k]; if(!(den>0)) continue;
+    acc += 1/den; if(rs < acc){ S.flagSmall=k; break; }
   }
 }
 
 /* =========================================================
-   ゲーム進行
+   8. ゲーム進行
    ========================================================= */
 function spin(){
+  if(!ROOM) return;
   if(S.phase!=='idle') return;
+  const BET = CFG.bet;
   if(!S.replay){
-    if(S.credit < BET){ setMsg('メダルが足りません。貸出ボタンを押してください'); return; }
+    if(S.credit < BET){ setMsg('メダルが足りません。借入または補充してください'); return; }
     S.credit -= BET; S.inTotal += BET;
   }
-  S.replay=false;
-  S.payout=0;
-  S.games++;
+  S.replay=false; S.payout=0; S.games++;
   lottery();
-
-  /* 告知タイミング：3割はレバーオン時に点灯 */
   if(S.lampPending && Math.random()<0.3){ setLamp(true); S.lampPending=false; }
-
-  S.phase='spin'; S.stopCount=0; S.stopped=[];
+  S.phase='spin'; S.stopCount=0; S.stopPos=[null,null,null];
   S.reels.forEach(r=>{ r.spin=true; r.stop=null; });
+  highlightLines([]);
   setMsg('ボーナス絵柄をねらえ');
   document.getElementById('cabinet').classList.remove('flashwin');
   update();
 }
-
 function stopReel(i){
   if(S.phase!=='spin') return;
   if(i===undefined || i===null){
-    i = [0,1,2].find(j=>S.reels[j].stop===null);   // Enterは左→中→右の順
+    i = [0,1,2].find(j=>S.reels[j].stop===null);
     if(i===undefined) return;
   }
   const rl = S.reels[i];
@@ -868,55 +997,101 @@ function stopReel(i){
   const from = Math.ceil(rl.r);
   const stop = decideStop(i, from);
   rl.stop = stop; rl.from = rl.r; rl.t0 = performance.now();
-  S.stopped[i] = midOf(i, stop);
+  S.stopPos[i] = ((stop % N) + N) % N;
   S.stopCount++;
   beep(520, 0.05);
 }
 
-function evaluate(){
-  const m = S.stopped;
-  let win=0, text='', hit=false;
+/* --- 役判定 --- */
+function bonusKind(a,b,c){
+  const arr=[a,b,c];
+  if(!arr.every(s=>BONUS_SYMS.indexOf(s)>=0)) return null;
+  const sevens = arr.filter(s=>SEVENS.indexOf(s)>=0).length;
+  const bars   = 3 - sevens;
+  if(sevens===3) return (a===b && b===c) ? 'BIG' : 'MIX7';
+  if(sevens===2) return 'MIX2';
+  if(sevens===1) return 'MIX1';
+  return 'REG';                     // BAR×3
+}
+const BONUS_RANK = {BIG:5, MIX7:4, MIX2:3, REG:2, MIX1:1};
+function bonusPay(k){
+  return {BIG:CFG.pay.big, MIX7:CFG.pay.mix7, MIX2:CFG.pay.mix2, MIX1:CFG.pay.mix1, REG:CFG.pay.reg}[k] || 0;
+}
+const BONUS_NAME = {BIG:'★ BIG BONUS ★', MIX7:'異色7そろい', MIX2:'7・7・BAR', MIX1:'7・BAR・BAR', REG:'★ REG BONUS ★'};
 
-  if(m[0]===m[1] && m[1]===m[2]){
-    const s=m[0];
-    if(s==='R7'||s==='B7'){ win=BIG_PAY; text='★ BIG BONUS ★  +'+BIG_PAY+'枚'; S.bb++; hit=true; S.flagBonus=null; setLamp(false); }
-    else if(s==='BAR'){ win=REG_PAY; text='★ REG BONUS ★  +'+REG_PAY+'枚'; S.rb++; hit=true; S.flagBonus=null; setLamp(false); }
-    else if(s==='REP'){ S.replay=true; text='REPLAY  再遊技'; }
-    else if(PAY[s]){ win=PAY[s]; text=SYM[s].name+'  +'+win+'枚'; }
+function evaluate(){
+  const grid = [0,1,2].map(r=> [0,1,2].map(c=> cellAt(c, S.stopPos[c], r)));  // grid[row][col]
+  let best = null;   // {li, kind, sym, pay, rank}
+
+  LINES.forEach((L,li)=>{
+    const [a,b,c] = L.c.map(([r,co])=> grid[r][co]);
+    const bk = bonusKind(a,b,c);
+    if(bk){
+      if(!S.flagBonus) return;                        // フラグ未成立では払い出さない
+      const cand = {li:li, kind:bk, sym:null, pay:bonusPay(bk), rank:100+BONUS_RANK[bk]};
+      if(!best || cand.rank > best.rank) best = cand;
+      return;
+    }
+    if(a===b && b===c){
+      if(a==='REP'){
+        const cand = {li:li, kind:'REP', sym:'REP', pay:0, rank:1};
+        if(!best || cand.rank > best.rank) best = cand;
+        return;
+      }
+      const p = CFG.pay[a];
+      if(p){
+        const cand = {li:li, kind:'SMALL', sym:a, pay:p, rank:2+Math.min(90,p)};
+        if(!best || cand.rank > best.rank) best = cand;
+      }
+    }
+  });
+
+  let win = 0, text = '', hit = false, winLines = [];
+
+  if(best){
+    winLines = [best.li];
+    if(best.kind === 'REP'){
+      S.replay = true;
+      text = 'REPLAY  再遊技（'+LINES[best.li].n+'）';
+    }else if(best.kind === 'SMALL'){
+      win = best.pay;
+      text = SYM[best.sym].name+'（'+LINES[best.li].n+'）  +'+win+'枚';
+    }else{
+      win = best.pay; hit = true;
+      text = BONUS_NAME[best.kind]+'（'+LINES[best.li].n+'）  +'+win+'枚';
+      if(best.kind==='BIG'||best.kind==='MIX7') S.bb++; else S.rb++;
+      S.flagBonus=null; S.flagBonusSym=null; setLamp(false);
+    }
   }
-  if(!win && !S.replay && m[0]==='CHE'){
-    win=PAY.CHE; text='チェリー  +'+win+'枚';
-  }
-  if(!text) text = S.flagBonus ? 'ボーナス絵柄をそろえてください' : '';
 
   if(win){ S.credit+=win; S.outTotal+=win; S.payout=win; }
+  highlightLines(winLines);
   if(hit){ document.getElementById('cabinet').classList.add('flashwin'); fanfare(); }
   else if(win) beep(880,0.08);
-
-  /* 告知：第3停止後に点灯（残り7割） */
   if(S.lampPending){ setLamp(true); S.lampPending=false; }
 
-  setMsg(text || 'MAX BET でスタート', hit);
+  if(!text) text = S.flagBonus ? 'ボーナス成立中 — 7またはBARをねらえ' : 'MAX BET でスタート';
+  setMsg(text, hit);
   S.phase='idle';
   update();
 }
 
 /* =========================================================
-   アニメーション
+   9. アニメーション
    ========================================================= */
 let last = performance.now();
 function loop(now){
   const dt = Math.min((now-last)/1000, 0.05); last = now;
+  const speed = document.getElementById('chkMeoshi').checked ? CFG.speed.slow : CFG.speed.fast;
   let allStopped = true;
-  S.reels.forEach((rl,i)=>{
+  S.reels.forEach((rl)=>{
     if(!rl.spin) return;
-    if(rl.stop===null){ rl.r += SPEED*dt; allStopped=false; }
+    if(rl.stop===null){ rl.r += speed*dt; allStopped=false; }
     else{
-      const p = Math.min((now-rl.t0)/140, 1);
+      const p = Math.min((now-rl.t0)/160, 1);
       const e = 1-Math.pow(1-p,3);
       rl.r = rl.from + (rl.stop-rl.from)*e;
-      if(p>=1){ rl.r = rl.stop; rl.spin=false; }
-      else allStopped=false;
+      if(p>=1){ rl.r = rl.stop; rl.spin=false; } else allStopped=false;
     }
   });
   render();
@@ -925,15 +1100,13 @@ function loop(now){
 }
 
 /* =========================================================
-   UI
+   10. UI
    ========================================================= */
 function setMsg(t, hit){
-  const el=document.getElementById('msg');
-  el.textContent=t; el.classList.toggle('hit', !!hit);
+  const el=document.getElementById('msg'); el.textContent=t; el.classList.toggle('hit', !!hit);
 }
 function setLamp(on){
-  S.lampOn=on;
-  document.getElementById('lamp').classList.toggle('on', on);
+  S.lampOn=on; document.getElementById('lamp').classList.toggle('on', on);
   if(on) beep(1200,0.12);
 }
 function pr(g,c){ return c ? '1/'+(g/c).toFixed(1) : '-'; }
@@ -941,42 +1114,41 @@ function update(){
   const diff = S.outTotal - S.inTotal;
   const debt = totalDebt(), lent = lentOut();
   const net  = S.bank + S.credit - debt + lent;
-  document.getElementById('mDebt').textContent    = debt;
-  document.getElementById('dDebt').textContent    = debt;
-  document.getElementById('dLent').textContent    = lent;
-  document.getElementById('dGmRate').textContent  = Math.round(gmRate()*100)+'%';
+  document.getElementById('mDebt').textContent   = debt;
+  document.getElementById('dDebt').textContent   = debt;
+  document.getElementById('dLent').textContent   = lent;
+  document.getElementById('dGmRate').textContent = Math.round(gmRate()*100)+'%';
   renderDebts();
   document.getElementById('mBank').textContent   = S.bank;
   document.getElementById('dBank').textContent   = S.bank;
   document.getElementById('dCredit').textContent = S.credit;
   document.getElementById('dNet').textContent    = (net>0?'+':'')+net;
-  document.getElementById('mCredit').textContent=S.credit;
-  document.getElementById('mPay').textContent=S.payout;
-  document.getElementById('mDiff').textContent=(diff>0?'+':'')+diff;
-  document.getElementById('dG').textContent=S.games;
-  document.getElementById('dBB').textContent=S.bb;
-  document.getElementById('dRB').textContent=S.rb;
-  document.getElementById('dPB').textContent=pr(S.games,S.bb);
-  document.getElementById('dPR').textContent=pr(S.games,S.rb);
-  document.getElementById('dPT').textContent=pr(S.games,S.bb+S.rb);
-  document.getElementById('dDiff').textContent=(diff>0?'+':'')+diff;
+  document.getElementById('mCredit').textContent = S.credit;
+  document.getElementById('mPay').textContent    = S.payout;
+  document.getElementById('mDiff').textContent   = (diff>0?'+':'')+diff;
+  document.getElementById('dG').textContent      = S.games;
+  document.getElementById('dBB').textContent     = S.bb;
+  document.getElementById('dRB').textContent     = S.rb;
+  document.getElementById('dPB').textContent     = pr(S.games,S.bb);
+  document.getElementById('dPR').textContent     = pr(S.games,S.rb);
+  document.getElementById('dPT').textContent     = pr(S.games,S.bb+S.rb);
+  document.getElementById('dDiff').textContent   = (diff>0?'+':'')+diff;
   saveDB();
 }
+document.getElementById('chkIdx').onchange = e=>{
+  document.getElementById('reelbox').classList.toggle('showidx', e.target.checked);
+};
 
-/* キーボード：Enterで開始→3回押して停止 */
+/* キーボード */
 const KEYMAP = {Numpad1:0, Numpad2:1, Numpad3:2, Digit1:0, Digit2:1, Digit3:2};
 document.addEventListener('keydown', e=>{
+  if(!document.getElementById('gate').hidden) return;
   if(!document.getElementById('modal').hidden) return;
-  if(e.key==='Enter'){
-    e.preventDefault();
-    if(S.phase==='idle') spin(); else stopReel();
-  }else if(e.code==='Space'){
-    e.preventDefault();
-    if(S.phase==='idle') spin();
-  }else if(e.code in KEYMAP){
-    e.preventDefault();
-    if(S.phase==='spin') stopReel(KEYMAP[e.code]);
-  }
+  const tag = (e.target.tagName||'').toLowerCase();
+  if(tag==='input' || tag==='select') return;
+  if(e.key==='Enter'){ e.preventDefault(); if(S.phase==='idle') spin(); else stopReel(); }
+  else if(e.code==='Space'){ e.preventDefault(); if(S.phase==='idle') spin(); }
+  else if(e.code in KEYMAP){ e.preventDefault(); if(S.phase==='spin') stopReel(KEYMAP[e.code]); }
 });
 document.getElementById('btnSpin').onclick = ()=>{ spin(); document.activeElement.blur(); };
 document.querySelectorAll('.btnStop').forEach(b=>{
@@ -984,19 +1156,19 @@ document.querySelectorAll('.btnStop').forEach(b=>{
 });
 document.getElementById('btnRefill').onclick = ()=>{
   if(S.bank <= 0){ setMsg('持ち球がありません'); return; }
-  const n = Math.min(CFG.lendUnit, S.bank);
-  S.bank -= n; S.credit += n;
+  const n = Math.min(50, S.bank); S.bank -= n; S.credit += n;
   setMsg('持ち球から '+n+'枚 補充'); update();
 };
 document.getElementById('btnPayout').onclick = ()=>{
   if(S.phase !== 'idle'){ setMsg('回転中は精算できません'); return; }
   if(S.credit <= 0){ setMsg('クレジットがありません'); return; }
-  const n = S.credit;
-  S.bank += n; S.credit = 0;
+  const n = S.credit; S.bank += n; S.credit = 0;
   setMsg('払い出し '+n+'枚 → 持ち球 '+S.bank+'枚', true); update();
 };
 
-/* ===== 借金システム ===== */
+/* =========================================================
+   11. 借金システム
+   ========================================================= */
 function renderDebts(){
   const el = document.getElementById('debtList');
   if(!S.debts.length){ el.innerHTML = '<div class="empty">借金はありません</div>'; return; }
@@ -1010,58 +1182,47 @@ function makeDebt(from, amount, rate){
   const total = Math.ceil(amount * (1 + rate));
   S.debts.push({id:'d'+Date.now().toString(36)+Math.floor(Math.random()*999),
                 from:from, orig:amount, rate:rate, total:total, amount:total});
-  S.credit += amount;
-  return total;
+  S.credit += amount; return total;
 }
 function borrowGM(amount){
-  const rate = gmRate();
-  const total = makeDebt('GM', amount, rate);
-  S.gmLoans++;
-  setMsg('GMから'+amount+'枚 借入（金利'+Math.round(rate*100)+'%）返済額 '+total+'枚', true);
-  update();
+  const rate = gmRate(); const total = makeDebt('GM', amount, rate); S.gmLoans++;
+  setMsg('GMから'+amount+'枚 借入（金利'+Math.round(rate*100)+'%）返済額 '+total+'枚', true); update();
 }
 function borrowPlayer(lenderId, amount, rate){
   const L = DB.users[lenderId];
   if(!L){ setMsg('相手が見つかりません'); return; }
   if((L.bank||0) < amount){ setMsg(L.name+' さんの持ち球が足りません'); return; }
-  L.bank -= amount; L.updatedAt = now(); syncSoon();
+  L.bank -= amount;
   const total = makeDebt(lenderId, amount, rate);
-  setMsg(L.name+' から'+amount+'枚 借入（金利'+Math.round(rate*100)+'%）返済額 '+total+'枚', true);
-  update();
+  setMsg(L.name+' から'+amount+'枚 借入（金利'+Math.round(rate*100)+'%）返済額 '+total+'枚', true); update();
 }
 function repayDebt(debtId, amount){
-  const d = S.debts.find(x=>x.id===debtId);
-  if(!d) return;
+  const d = S.debts.find(x=>x.id===debtId); if(!d) return;
   let pay = Math.min(amount, d.amount);
   const pool = S.credit + S.bank;
   if(pool <= 0){ setMsg('返済できる枚数がありません'); return; }
   pay = Math.min(pay, pool);
   let rest = pay;
   const fromCr = Math.min(S.credit, rest); S.credit -= fromCr; rest -= fromCr;
-  S.bank -= rest;
-  d.amount -= pay;
-  if(d.from !== 'GM' && DB.users[d.from]){ DB.users[d.from].bank += pay; DB.users[d.from].updatedAt = now(); syncSoon(); }
+  S.bank -= rest; d.amount -= pay;
+  if(d.from !== 'GM' && DB.users[d.from]) DB.users[d.from].bank += pay;
   const nm = creditorName(d);
-  if(d.amount <= 0){
-    S.debts = S.debts.filter(x=>x.id!==d.id);
-    setMsg(nm+' への借金を完済しました！', true);
-  }else{
-    setMsg(nm+' へ'+pay+'枚 返済（残り'+d.amount+'枚）');
-  }
+  if(d.amount <= 0){ S.debts = S.debts.filter(x=>x.id!==d.id); setMsg(nm+' への借金を完済しました！', true); }
+  else setMsg(nm+' へ'+pay+'枚 返済（残り'+d.amount+'枚）');
   update();
 }
 
-/* ===== モーダル ===== */
+/* =========================================================
+   12. モーダル
+   ========================================================= */
 const modal = document.getElementById('modal');
 let okHandler = null;
 function openModal(title, html, onOk, okLabel){
   document.getElementById('mTitle').textContent = title;
   document.getElementById('mBody').innerHTML = html;
   const ok = document.getElementById('mOk');
-  ok.hidden = !onOk;
-  ok.textContent = okLabel || '実行';
-  okHandler = onOk;
-  modal.hidden = false;
+  ok.hidden = !onOk; ok.textContent = okLabel || '実行';
+  okHandler = onOk; modal.hidden = false;
 }
 function closeModal(){ modal.hidden = true; okHandler = null; }
 document.getElementById('mCancel').onclick = closeModal;
@@ -1081,16 +1242,15 @@ function openBorrow(){
     '<div class="fld" id="bRateWrap" hidden><label>金利％（貸す人が入力してください）</label>'+
       '<input type="number" id="bRate" value="20" min="0" max="500" step="5"></div>'+
     '<div class="calc" id="bCalc"></div>'+
-    '<div class="warn">借入時に金利分が上乗せされ、返済総額が借金として記録されます。GMからの借入は1回ごとに金利が'+Math.round(GM_STEP*100)+'%上昇します（上限'+Math.round(GM_MAX*100)+'%）。</div>',
+    '<div class="warn">借入時に金利分が上乗せされ、返済総額が借金として記録されます。</div>',
     ()=>{
       const from = document.getElementById('bFrom').value;
       const amt  = Math.floor(+document.getElementById('bAmt').value);
-      if(!(amt>0)){ return; }
+      if(!(amt>0)) return;
       if(from==='GM') borrowGM(amt);
       else borrowPlayer(from, amt, Math.max(0,+document.getElementById('bRate').value)/100);
       closeModal();
     }, '借りる');
-
   const fFrom=document.getElementById('bFrom'), fAmt=document.getElementById('bAmt'),
         fRate=document.getElementById('bRate'), wrap=document.getElementById('bRateWrap'),
         calc=document.getElementById('bCalc');
@@ -1099,13 +1259,11 @@ function openBorrow(){
     wrap.hidden = isGM;
     const rate = isGM ? gmRate() : Math.max(0,+fRate.value)/100;
     const amt = Math.max(0, Math.floor(+fAmt.value)||0);
-    const total = Math.ceil(amt*(1+rate));
-    calc.innerHTML = '受け取る枚数 <b>'+amt+'枚</b><br>金利 <b>'+Math.round(rate*100)+'%</b><br>返済総額 <b class="rd">'+total+'枚</b>';
+    calc.innerHTML = '受け取る枚数 <b>'+amt+'枚</b><br>金利 <b>'+Math.round(rate*100)+'%</b><br>返済総額 <b class="rd">'+Math.ceil(amt*(1+rate))+'枚</b>';
   }
   [fFrom,fAmt,fRate].forEach(el=> el && (el.oninput = el.onchange = refresh));
   refresh();
 }
-
 function openRepay(){
   if(!S.debts.length){ setMsg('返済する借金はありません'); return; }
   const rows = S.debts.map(d=>
@@ -1115,8 +1273,7 @@ function openRepay(){
       '<button class="rGo" data-id="'+d.id+'" style="white-space:nowrap">返済</button>'+
     '</div></div>').join('');
   openModal('返済 — REPAY',
-    '<div class="calc">クレジット <b>'+S.credit+'枚</b><br>持ち球 <b>'+S.bank+'枚</b><br>借金残高 <b class="rd">'+totalDebt()+'枚</b></div>'+
-    rows+'<div class="warn">クレジットから先に支払い、足りない分を持ち球から充当します。</div>',
+    '<div class="calc">クレジット <b>'+S.credit+'枚</b><br>持ち球 <b>'+S.bank+'枚</b><br>借金残高 <b class="rd">'+totalDebt()+'枚</b></div>'+rows,
     null);
   document.getElementById('mBody').querySelectorAll('.rGo').forEach(b=>{
     b.onclick = ()=>{
@@ -1135,95 +1292,78 @@ document.getElementById('btnRepay2').onclick  = openRepay;
 document.getElementById('selUser').onchange = (e)=>{
   if(S.phase !== 'idle'){ setMsg('回転中は交代できません'); renderUsers(); return; }
   captureUser();
-  try{ LS.set(USERS_KEY, JSON.stringify(DB)); }catch(err){}
+  try{ localStorage.setItem(USERS_KEY, JSON.stringify(DB)); }catch(err){}
   applyUser(e.target.value);
-  setMsg(DB.users[DB.current].name + ' に交代しました');
+  setMsg(DB.users[DB.current].name + ' に交代しました（ルーム設定はそのままです）');
 };
 document.getElementById('btnNewUser').onclick = ()=>{
   openModal('新規プレイヤー — NEW PLAYER',
-    '<div class="fld"><label>プレイヤー名</label>'+
-      '<input type="text" id="pName" maxlength="16" placeholder="なまえ" autocomplete="off"></div>'+
-    '<div class="fld"><label>スタート持ち球（枚）</label>'+
-      '<input type="number" id="pBank" value="'+CFG.startBank+'" min="0" step="10"></div>'+
+    '<div class="fld"><label>プレイヤー名</label><input type="text" id="pName" maxlength="16" placeholder="なまえ" autocomplete="off"></div>'+
+    '<div class="fld"><label>スタート持ち球（枚）</label><input type="number" id="pBank" value="0" min="0" step="50"></div>'+
+    '<div class="ok">新しく参加してもルームの確率・出玉設定は変更されません。</div>'+
     '<div class="warn" id="pErr" hidden>名前を入力してください</div>',
     ()=>{
       const el = document.getElementById('pName');
       const nm = (el.value||'').trim().slice(0,16);
+      /* 隠しコマンド：プレイヤーは追加せず管理者ページへ */
+      if(nm.toLowerCase() === ADMIN_CMD){ closeModal(); openAdmin(); return; }
       if(!nm){ document.getElementById('pErr').hidden = false; el.focus(); return; }
-      if(nm.toLowerCase() === 'administrator'){ closeModal(); openAdminAuth(); return; }
       const bank = Math.max(0, Math.floor(+document.getElementById('pBank').value)||0);
       captureUser();
       const id = newUser(nm, 0);
       DB.users[id].bank = bank;
-      applyUser(id);
-      closeModal();
-      doSync(true);                       // 作成をすぐ他端末へ
+      applyUser(id); closeModal();
       setMsg(nm + ' さん、借入ボタンでメダルを調達してください', true);
     }, '追加する');
-  const inp = document.getElementById('pName');
-  inp.focus();
+  const inp = document.getElementById('pName'); inp.focus();
   inp.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('mOk').click(); } };
 };
-
 document.getElementById('btnRenameUser').onclick = ()=>{
   const u = DB.users[DB.current]; if(!u) return;
   openModal('名前の変更 — RENAME',
-    '<div class="fld"><label>プレイヤー名</label>'+
-      '<input type="text" id="pName" maxlength="16" value="'+esc(u.name)+'" autocomplete="off"></div>'+
+    '<div class="fld"><label>プレイヤー名</label><input type="text" id="pName" maxlength="16" value="'+esc(u.name)+'" autocomplete="off"></div>'+
     '<div class="warn" id="pErr" hidden>名前を入力してください</div>',
     ()=>{
       const el = document.getElementById('pName');
       const nm = (el.value||'').trim().slice(0,16);
       if(!nm){ document.getElementById('pErr').hidden = false; el.focus(); return; }
-      u.name = nm; delete u.auto; u.updatedAt = now();
-      renderUsers(); update(); closeModal(); doSync(true);
+      u.name = nm; renderUsers(); update(); closeModal();
       setMsg('名前を「'+nm+'」に変更しました');
     }, '変更する');
-  const inp = document.getElementById('pName');
-  inp.focus(); inp.select();
+  const inp = document.getElementById('pName'); inp.focus(); inp.select();
   inp.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('mOk').click(); } };
 };
-
 document.getElementById('btnDelUser').onclick = ()=>{
+  if(Object.keys(DB.users).length <= 1){ setMsg('最後のプレイヤーは削除できません'); return; }
   const u = DB.users[DB.current];
-  if(!u) return;
   const d = totalDebt(), l = lentOut();
   openModal('プレイヤー削除 — DELETE',
     '<div class="calc">対象 <b>'+esc(u.name)+'</b><br>持ち球 <b>'+S.bank+'枚</b><br>クレジット <b>'+S.credit+'枚</b></div>'+
-    (d ? '<div class="warn">未返済の借金 '+d+'枚が消滅します（踏み倒し）</div>' : '')+
+    (d ? '<div class="warn">未返済の借金 '+d+'枚が消滅します</div>' : '')+
     (l ? '<div class="warn">他プレイヤーへの貸付 '+l+'枚が回収不能になります</div>' : '')+
     '<div class="warn">この操作は取り消せません。</div>',
-    ()=>{
-      const nm = u.name;
-      deleteUser(DB.current);
-      closeModal();
-      setMsg(nm + ' を削除しました');
-    }, '削除する');
+    ()=>{ delete DB.users[DB.current]; applyUser(Object.keys(DB.users)[0]); closeModal(); setMsg('削除しました'); },
+    '削除する');
 };
-
-function resetStats(id){
-  if(id === DB.current){
-    Object.assign(S,{payout:0,inTotal:0,outTotal:0,games:0,bb:0,rb:0,
-      flagBonus:null,flagBonusSym:null,flagSmall:null,lampPending:false,replay:false});
-    setLamp(false); setMsg('MAX BET でスタート'); update();
-  }else{
-    const u = DB.users[id]; if(!u) return;
-    Object.assign(u,{payout:0,inTotal:0,outTotal:0,games:0,bb:0,rb:0, updatedAt:now()});
-    saveDB();
-  }
+function openResetStats(){
+  openModal('成績リセット — RESET（管理者）',
+    '<div class="calc">対象 <b>'+esc(DB.users[DB.current].name)+'</b><br>総ゲーム数 <b>'+S.games+'</b></div>'+
+    '<div class="warn">ゲーム数・BIG／REG回数・差枚数を0に戻します。持ち球・クレジット・借金・ルーム設定はそのまま残ります。</div>',
+    ()=>{
+      Object.assign(S,{payout:0,inTotal:0,outTotal:0,games:0,bb:0,rb:0,
+        flagBonus:null,flagBonusSym:null,flagSmall:null,lampPending:false,replay:false});
+      setLamp(false); closeModal(); setMsg('MAX BET でスタート'); update();
+    }, 'リセットする');
 }
 
-document.getElementById('selSetting').onchange = (e)=>{
-  if(CFG.settingUI !== 'edit'){ e.target.value = String(CFG.setting); return; }
-  CFG.setting = Math.min(6, Math.max(1, +e.target.value || 1));
-  saveCfg(); setMsg('設定' + CFG.setting + ' に変更しました');
-};
-
-/* 絵柄画像の差し替え */
+/* =========================================================
+   13. 絵柄画像
+   ========================================================= */
 const grid=document.getElementById('symGrid');
 ORDER.forEach(s=>{
   const w=document.createElement('div'); w.className='symslot';
-  w.innerHTML='<div class="pv s-'+s+'" data-sym="'+s+'">'+SYM[s].label+'</div><div class="nm">'+SYM[s].name+'</div>';
+  w.innerHTML='<div class="pv s-'+s+' z-'+s+'" data-sym="'+s+'" style="font-size:'+Math.round(26*SYM[s].size)+'px">'+SYM[s].label+'</div>'+
+              '<div class="nm">'+SYM[s].name+'</div>';
   grid.appendChild(w);
 });
 let pickTarget=null;
@@ -1237,18 +1377,20 @@ fileIn.addEventListener('change', ()=>{
   const fr=new FileReader();
   fr.onload=()=>{
     images[pickTarget]=fr.result;
-    try{ LS.set(IMG_KEY, JSON.stringify(images)); }
+    try{ localStorage.setItem(IMG_KEY, JSON.stringify(images)); }
     catch(err){ setMsg('画像が大きすぎて保存できません（今回だけ有効）'); }
     applyImages();
   };
   fr.readAsDataURL(f);
 });
 document.getElementById('btnImgReset').onclick=()=>{
-  images={}; try{ LS.del(IMG_KEY); }catch(e){}
+  images={}; try{ localStorage.removeItem(IMG_KEY); }catch(e){}
   applyImages();
 };
 
-/* サウンド */
+/* =========================================================
+   14. サウンド
+   ========================================================= */
 let ac=null;
 function beep(freq,dur){
   if(!document.getElementById('chkSound').checked) return;
@@ -1261,456 +1403,35 @@ function beep(freq,dur){
     o.connect(g).connect(ac.destination); o.start(); o.stop(ac.currentTime+dur);
   }catch(e){}
 }
-function fanfare(){
-  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.18), i*110));
-}
+function fanfare(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.18), i*110)); }
 
 /* =========================================================
-   クラウド同期（Google スプレッドシート / Apps Script）
+   15. 起動
    ========================================================= */
-const SY = {timer:null, busy:false, state:'off', msg:''};
-function syncReady(){ return !!(CFG.sync.enabled && CFG.sync.url && CFG.sync.room); }
-function setSyncStat(state, msg){
-  SY.state = state; SY.msg = msg || '';
-  const el = document.getElementById('syncStat');
-  if(!el) return;
-  const cls = {off:'', on:'on', busy:'busy', err:'err'}[state] || '';
-  const txt = {off:'同期：オフ（この端末のみ）', on:'同期：オン', busy:'同期中…', err:'同期エラー'}[state];
-  el.innerHTML = '<span class="syncdot '+cls+'"></span>' + txt + (msg ? ' — ' + esc(msg) : '');
-  const a = document.getElementById('aSyncStat');
-  if(a) a.innerHTML = el.innerHTML;
+buildStrips(); measureCell(); initUsers(); applyCfgToUI(); requestAnimationFrame(loop);
+window.addEventListener('resize', measureCell);
+window.addEventListener('orientationchange', ()=> setTimeout(measureCell, 250));
+if(window.ResizeObserver){
+  new ResizeObserver(measureCell).observe(document.getElementById('reelbox'));
 }
-async function api(action, body){
-  const res = await fetch(CFG.sync.url, {
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},   // プリフライト回避
-    body: JSON.stringify(Object.assign({action:action, room:CFG.sync.room, pass:CFG.sync.pass}, body||{}))
-  });
-  const j = await res.json();
-  if(j.error) throw new Error(j.error);
-  return j;
-}
-let syncTimer = null;
-function syncSoon(){
-  if(!syncReady()) return;
-  if(syncTimer) clearTimeout(syncTimer);
-  syncTimer = setTimeout(()=>{ syncTimer = null; doSync(false); }, 1200);
-}
-async function doSync(force){
-  if(!syncReady() || SY.busy) return;
-  if(!force && S.phase !== 'idle') return;
-  SY.busy = true; setSyncStat('busy');
-  try{
-    captureUser();
-    const payload = {};
-    Object.keys(DB.users).forEach(id=>{ if(!isPristine(DB.users[id]) || id === DB.current) payload[id] = DB.users[id]; });
-    pruneTombstones();
-    const j = await api('sync', {users: payload, cfg: CFG, deleted: DB.deleted});
-    if(j.serverTime) clockOffset = j.serverTime - Date.now();
-    let mineChanged = false, otherChanged = false;
-    /* 他端末で削除されたプレイヤーを反映 */
-    const rdel = j.deleted || {};
-    Object.keys(rdel).forEach(id=>{
-      if(!(DB.deleted[id] >= rdel[id])) DB.deleted[id] = rdel[id];
-    });
-    Object.keys(DB.deleted).forEach(id=>{
-      const u = DB.users[id];
-      if(u && (u.updatedAt||0) <= DB.deleted[id]){
-        delete DB.users[id];
-        if(DB.current === id) mineChanged = true; else otherChanged = true;
-      }
-    });
-    Object.keys(j.users || {}).forEach(id=>{
-      if(DB.deleted[id] !== undefined && DB.deleted[id] >= ((j.users[id]||{}).updatedAt||0)) return;
-      const sv = j.users[id], lo = DB.users[id];
-      if(!sv || typeof sv !== 'object') return;
-      if(lo && (sv.updatedAt||0) <= (lo.updatedAt||0)) return;   // ローカルの方が新しい
-      if(lo && userSig(sv) === userSig(lo)){                     // 中身が同じなら時刻だけ合わせる
-        lo.updatedAt = sv.updatedAt; return;
-      }
-      DB.users[id] = sv;
-      if(id === DB.current) mineChanged = true; else otherChanged = true;
-    });
-    if(!DB.users[DB.current]) DB.current = Object.keys(DB.users)[0];
-    if(j.cfg && (j.cfg.updatedAt||0) > (CFG.updatedAt||0)){
-      const sync = CFG.sync;                 // 接続情報は端末ごとに保持
-      CFG = mergeCfg(DEFAULT_CFG, j.cfg); CFG.sync = sync;
-      saveCfg(false); applyCfg();
-    }
-    /* 他端末のプレイヤーが見えたら、この端末の空の仮プレイヤーは片付ける */
-    const real = Object.keys(DB.users).filter(id=>!isPristine(DB.users[id]));
-    if(real.length){
-      Object.keys(DB.users).forEach(id=>{
-        if(isPristine(DB.users[id])){
-          delete DB.users[id];
-          if(DB.current === id){ DB.current = real[0]; mineChanged = true; }
-        }
-      });
-    }
-    if(!Object.keys(DB.users).length){
-      DB.current = newUser('プレイヤー1', 50);
-      DB.users[DB.current].auto = true;
-      mineChanged = true;
-    }
-    if(!DB.users[DB.current]){ DB.current = Object.keys(DB.users)[0]; mineChanged = true; }
-    if(mineChanged){
-      const wasIdle = (S.phase === 'idle');
-      applyUser(DB.current);
-      if(!wasIdle) S.phase = 'spin';
-    }else if(otherChanged){ renderUsers(); update(); }
-    else renderUsers();
-    setSyncStat('on', new Date().toLocaleTimeString('ja-JP'));
-  }catch(e){
-    setSyncStat('err', e.message || '通信失敗');
-  }finally{ SY.busy = false; }
-}
-function bindSyncStat(){
-  const el = document.getElementById('syncStat');
-  if(!el) return;
-  el.style.cursor = 'pointer';
-  el.title = 'クリックで今すぐ同期';
-  el.onclick = ()=>{ if(syncReady()) doSync(true); };
-}
-function initSync(){
-  bindSyncStat();
-  if(SY.timer) clearInterval(SY.timer);
-  if(!syncReady()){ setSyncStat('off'); return; }
-  setSyncStat('on', '接続中…');
-  doSync(true);
-  SY.timer = setInterval(()=>doSync(false), 12000);
-}
-
-/* =========================================================
-   管理者ページ
-   ========================================================= */
-const PIN_KEY = 'slotAdminPin_v1';
-async function hashPin(t){
-  const src = 'slot-admin::' + t;
-  try{
-    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(src));
-    return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
-  }catch(e){
-    let h = 5381;
-    for(let i=0;i<src.length;i++){ h = ((h*33) ^ src.charCodeAt(i)) >>> 0; }
-    return 'fb'+h.toString(16);
-  }
-}
-function openAdminAuth(){
-  const stored = LS.get(PIN_KEY);
-  if(!stored){
-    openModal('管理者パスコードの設定',
-      '<div class="fld"><label>新しいパスコード（4文字以上）</label><input type="password" id="pin1" autocomplete="new-password"></div>'+
-      '<div class="fld"><label>確認のためもう一度</label><input type="password" id="pin2" autocomplete="new-password"></div>'+
-      '<div class="warn" id="pinErr" hidden>入力を確認してください</div>'+
-      '<div class="note">ブラウザ内の簡易的な入場制限です。本格的な認証ではないため、重要な秘密の保護には使用しないでください。忘れた場合はブラウザのサイトデータ削除でリセットできます。</div>',
-      async ()=>{
-        const a = document.getElementById('pin1').value, b = document.getElementById('pin2').value;
-        if(a.length < 4 || a !== b){ document.getElementById('pinErr').hidden = false; return; }
-        LS.set(PIN_KEY, await hashPin(a));
-        closeModal(); openAdmin();
-      }, '設定して開く');
-    document.getElementById('pin1').focus();
-    return;
-  }
-  openModal('管理者ログイン',
-    '<div class="fld"><label>パスコード</label><input type="password" id="pin1" autocomplete="current-password"></div>'+
-    '<div class="warn" id="pinErr" hidden>パスコードが違います</div>',
-    async ()=>{
-      const a = document.getElementById('pin1').value;
-      if(await hashPin(a) !== LS.get(PIN_KEY)){ document.getElementById('pinErr').hidden = false; return; }
-      closeModal(); openAdmin();
-    }, 'ログイン');
-  const el = document.getElementById('pin1');
-  el.focus();
-  el.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('mOk').click(); } };
-}
-
-const SMALL_SYMS = ['REP','GRA','CHE','BELL','PIE'];
-function fld(id, label, val, type, extra){
-  return '<div class="af'+(extra==='wide'?' wide':'')+'"><label>'+label+'</label>'+
-    '<input id="'+id+'" type="'+(type||'number')+'" value="'+esc(val)+'" step="any"></div>';
-}
-function openAdmin(){
-  const c = CFG;
-  const setRows = [1,2,3,4,5,6].map(n=>
-    fld('a_big'+n,'設定'+n+' BIG 1/', c.settings[n].big) + fld('a_reg'+n,'設定'+n+' REG 1/', c.settings[n].reg)).join('');
-  const smallRows = SMALL_SYMS.map(sym=>{
-    const den = (c.small.find(x=>x[0]===sym)||[sym,0])[1];
-    return fld('a_sd_'+sym, SYM[sym].name+' 1/', den) +
-      (sym==='REP' ? '<div class="af"><label>払出</label><input value="再遊技" disabled></div>'
-                   : fld('a_sp_'+sym, SYM[sym].name+' 払出枚数', c.pay[sym]||0));
-  }).join('');
-  const stripRows = [0,1,2].map(i=>
-    '<div class="af wide"><label>'+['左','中','右'][i]+'リール（カンマ区切り／使用可: '+ORDER.join(', ')+'）</label>'+
-    '<textarea id="a_strip'+i+'">'+STRIPS[i].join(',')+'</textarea></div>').join('');
-
-  document.getElementById('adminBody').innerHTML =
-  '<div class="asec"><h3>台の表示</h3><div class="agrid">'+
-    fld('a_brand','機種名', c.brand, 'text', 'wide') + fld('a_sub','サブタイトル', c.sub, 'text', 'wide') +
-  '</div><div class="note">実在する遊技機の名称・ロゴ・キャッチコピーは使用しないでください（商標権の侵害になり得ます）。</div></div>'+
-
-  '<div class="asec"><h3>遊技の基本</h3><div class="agrid">'+
-    fld('a_bet','BET（1回の投入枚数）', c.bet) + fld('a_bigPay','BIG 払出枚数', c.bigPay) +
-    fld('a_regPay','REG 払出枚数', c.regPay) + fld('a_speed','リール速度（コマ/秒）', c.speed) +
-  '</div></div>'+
-
-  '<div class="asec"><h3>ボーナス確率（分母）</h3><div class="agrid">'+setRows+'</div></div>'+
-
-  '<div class="asec"><h3>小役の確率と払出</h3><div class="agrid">'+smallRows+'</div></div>'+
-
-  '<div class="asec"><h3>リール配列</h3><div class="agrid">'+stripRows+
-  '</div><div class="note">3本とも同じコマ数にしてください。不正な値を入れた場合は既定の配列に戻ります。</div></div>'+
-
-  '<div class="asec"><h3>借金（GM）</h3><div class="agrid">'+
-    fld('a_gmBase','初回金利 %', Math.round(c.gm.base*1000)/10) +
-    fld('a_gmStep','1回ごとの上昇 %', Math.round(c.gm.step*1000)/10) +
-    fld('a_gmMax','金利の上限 %', Math.round(c.gm.max*1000)/10) +
-  '</div></div>'+
-
-  '<div class="asec"><h3>プレイヤー既定値・制限</h3><div class="agrid">'+
-    fld('a_startBank','新規プレイヤーの初期持ち球', c.startBank) +
-    fld('a_lendUnit','「持ち球から補充」の単位', c.lendUnit) +
-    '<div class="af"><label>現在の設定（1〜6）</label><select id="a_setting">'+
-      [1,2,3,4,5,6].map(n=>'<option value="'+n+'"'+(c.setting===n?' selected':'')+'>設定'+n+
-        '（BIG 1/'+c.settings[n].big+'・REG 1/'+c.settings[n].reg+'）</option>').join('')+'</select></div>'+
-    '<div class="af"><label>設定表示（遊技画面）</label><select id="a_settingUI">'+
-      '<option value="hidden"'+(c.settingUI==='hidden'?' selected':'')+'>表示しない（管理者のみ）</option>'+
-      '<option value="view"'+(c.settingUI==='view'?' selected':'')+'>表示のみ（変更不可）</option>'+
-      '<option value="edit"'+(c.settingUI==='edit'?' selected':'')+'>表示して変更も許可</option></select></div>'+
-    '<div class="af"><label>DATAの確率表示</label><select id="a_showOdds">'+
-      '<option value="1"'+(c.showOdds?' selected':'')+'>表示する</option>'+
-      '<option value="0"'+(!c.showOdds?' selected':'')+'>表示しない（BIG/REG/合成確率）</option></select></div>'+
-    '<div class="af"><label>目押しアシスト</label><select id="a_assist">'+
-      '<option value="free"'+(c.forceAssist===null?' selected':'')+'>プレイヤーが選択</option>'+
-      '<option value="on"'+(c.forceAssist===true?' selected':'')+'>常時ON</option>'+
-      '<option value="off"'+(c.forceAssist===false?' selected':'')+'>常時OFF</option></select></div>'+
-    '<div class="af"><label>絵柄画像の差し替え</label><select id="a_allowImg">'+
-      '<option value="1"'+(c.allowImageUpload?' selected':'')+'>許可</option>'+
-      '<option value="0"'+(!c.allowImageUpload?' selected':'')+'>禁止（権利侵害の予防）</option></select></div>'+
-  '</div></div>'+
-
-  '<div class="asec"><h3>複数端末で持ち球を共有（Google スプレッドシート）</h3><div class="agrid">'+
-    '<div class="af"><label>同期</label><select id="a_syncOn">'+
-      '<option value="0"'+(!c.sync.enabled?' selected':'')+'>オフ（この端末のみ）</option>'+
-      '<option value="1"'+(c.sync.enabled?' selected':'')+'>オン</option></select></div>'+
-    fld('a_syncRoom','ルームID（店舗名など）', c.sync.room, 'text') +
-    fld('a_syncPass','合言葉', c.sync.pass, 'text') +
-    fld('a_syncUrl','Apps Script ウェブアプリURL（/exec）', c.sync.url, 'text', 'wide') +
-  '</div>'+
-  '<div class="btnrow"><button id="aTest">接続テスト</button><button id="aSyncNow">今すぐ同期</button>'+
-  '<button id="aWipeRoom" style="color:var(--red)">ルームのデータを全消去</button></div>'+
-  '<div class="stat" id="aSyncStat"></div>'+
-  '<div class="note">URLはこの端末のブラウザにのみ保存され、ソースコードには含まれません。公開リポジトリにURLや合言葉を書き込まないでください。</div></div>'+
-
-  '<div class="asec"><h3>プレイヤー管理</h3><div id="aPlayers"></div>'+
-  '<div class="note">成績リセット・借金帳消し・削除はこのページからのみ行えます。遊技画面からは操作できません。</div></div>'+
-
-  '<div class="asec"><h3>データ</h3>'+
-    '<div class="btnrow"><button id="aResetAll">全プレイヤーの成績をリセット</button>'+
-    '<button id="aPurge">未使用の空プレイヤーを削除</button></div>'+
-    '<div class="btnrow"><button id="aExport">設定を書き出す</button><button id="aImport">設定を読み込む</button>'+
-    '<button id="aPin">パスコード変更</button></div>'+
-    '<div class="btnrow"><button id="aDefault">マシン設定を初期値に戻す</button>'+
-    '<button id="aWipe" style="color:var(--red)">この端末の全データを削除</button></div>'+
-  '</div>'+
-
-  '<div class="abar"><button id="aSave" class="primary">設定を保存して反映</button></div>';
-
-  renderAdminPlayers();
-  setSyncStat(SY.state, SY.msg);
-  document.getElementById('admin').hidden = false;
-  window.scrollTo(0,0);
-
-  document.getElementById('aSave').onclick   = saveAdmin;
-  document.getElementById('aTest').onclick   = async ()=>{
-    const st = document.getElementById('aSyncStat');
-    st.textContent = '接続テスト中…';
-    const bk = JSON.parse(JSON.stringify(CFG.sync));
-    CFG.sync = {enabled:true, url:document.getElementById('a_syncUrl').value.trim(),
-                room:document.getElementById('a_syncRoom').value.trim(),
-                pass:document.getElementById('a_syncPass').value};
-    try{ const j = await api('ping'); st.innerHTML = '<span class="ok">接続OK（ルーム: '+esc(j.room||'')+' / 登録プレイヤー '+(j.count||0)+'人）</span>'; }
-    catch(e){ st.innerHTML = '<span class="warn">失敗: '+esc(e.message)+'</span>'; CFG.sync = bk; }
-  };
-  document.getElementById('aSyncNow').onclick = ()=>doSync(true);
-  document.getElementById('aWipeRoom').onclick = ()=>{
-    openModal('ルームのデータを全消去',
-      '<div class="warn">スプレッドシート上のこのルームのプレイヤー情報をすべて削除します。'+
-      '重複した「プレイヤー1」などを整理したいときに使います。<br>'+
-      'この端末のプレイヤーは残るので、必要なら消去後に「今すぐ同期」で登録し直せます。</div>',
-      async ()=>{
-        try{
-          await api('wipe');
-          DB.deleted = {};
-          Object.keys(DB.users).forEach(id=>{ DB.users[id].updatedAt = now(); });
-          saveDB();
-          closeModal();
-          setMsg('ルームのデータを消去しました', true);
-          renderAdminPlayers();
-        }catch(e){ alert('失敗しました: ' + e.message); }
-      }, '消去する');
-  };
-  document.getElementById('aResetAll').onclick = ()=>{
-    openModal('全プレイヤーの成績リセット',
-      '<div class="warn">全員のゲーム数・BIG／REG回数・差枚数を0に戻します。持ち球・クレジット・借金は残ります。</div>',
-      ()=>{ Object.keys(DB.users).forEach(resetStats); applyUser(DB.current);
-            closeModal(); renderAdminPlayers(); doSync(true); }, 'リセットする');
-  };
-  document.getElementById('aPurge').onclick = ()=>{
-    const targets = Object.keys(DB.users).filter(id=> id !== DB.current && isEmptyUser(DB.users[id]));
-    if(!targets.length){ openModal('未使用の空プレイヤー','<div class="calc">削除できる空のプレイヤーはありません。</div>', null); return; }
-    openModal('未使用の空プレイヤーを削除',
-      '<div class="calc">対象 <b>'+targets.length+'人</b><br>'+targets.map(id=>esc(DB.users[id].name)).join('、')+'</div>'+
-      '<div class="warn">ゲーム数0・持ち球0・借金なしのプレイヤーだけを削除します。他の端末からも消えます。</div>',
-      ()=>{ targets.forEach(deleteUser); closeModal(); renderAdminPlayers(); doSync(true); }, '削除する');
-  };
-  document.getElementById('aExport').onclick  = exportCfg;
-  document.getElementById('aImport').onclick  = ()=>document.getElementById('cfgIn').click();
-  document.getElementById('aPin').onclick     = ()=>{ LS.del(PIN_KEY); closeAdmin(); openAdminAuth(); };
-  document.getElementById('aDefault').onclick = ()=>{
-    openModal('マシン設定の初期化','<div class="warn">確率・配当・リール配列・表示名を初期値に戻します。プレイヤーのデータと同期設定は残ります。</div>',
-      ()=>{ const sync = CFG.sync; CFG = mergeCfg(DEFAULT_CFG, {}); CFG.sync = sync; saveCfg(); applyCfg(); update(); closeModal(); openAdmin(); }, '初期化する');
-  };
-  document.getElementById('aWipe').onclick = ()=>{
-    openModal('全データの削除','<div class="warn">この端末に保存されたプレイヤー・持ち球・借金・設定・絵柄画像をすべて削除します。取り消せません。</div>',
-      ()=>{ [USERS_KEY, CFG_KEY, PIN_KEY, IMG_KEY, 'slotAgreed_v1'].forEach(k=>{ try{LS.del(k)}catch(e){} }); location.reload(); }, '削除する');
-  };
-  document.getElementById('aClose').onclick = closeAdmin;
-}
-function closeAdmin(){ document.getElementById('admin').hidden = true; }
-
-function renderAdminPlayers(){
-  const ids = Object.keys(DB.users);
-  document.getElementById('aPlayers').innerHTML =
-    '<table class="atbl"><tr><th>名前</th><th>持ち球</th><th>クレジット</th><th>借金</th><th>操作</th></tr>'+
-    ids.map(id=>{
-      const u = DB.users[id];
-      const debt = (u.debts||[]).reduce((a,d)=>a+d.amount,0);
-      return '<tr><td><input type="text" data-f="name" data-id="'+id+'" value="'+esc(u.name)+'" style="width:120px"></td>'+
-        '<td><input type="number" data-f="bank" data-id="'+id+'" value="'+(u.bank||0)+'"></td>'+
-        '<td><input type="number" data-f="credit" data-id="'+id+'" value="'+(u.credit||0)+'"></td>'+
-        '<td>'+debt+'枚</td>'+
-        '<td><button data-act="stats" data-id="'+id+'">成績リセット</button> '+
-        '<button data-act="clear" data-id="'+id+'">借金帳消し</button> '+
-        '<button data-act="del" data-id="'+id+'" style="color:var(--red)">削除</button></td></tr>';
-    }).join('')+'</table>';
-  document.getElementById('aPlayers').querySelectorAll('button').forEach(b=>{
-    b.onclick = ()=>{
-      const id = b.dataset.id;
-      if(b.dataset.act === 'stats'){
-        resetStats(id);
-      }else if(b.dataset.act === 'clear'){
-        DB.users[id].debts = []; DB.users[id].gmLoans = 0; DB.users[id].updatedAt = now();
-      }else{
-        deleteUser(id);
-        renderAdminPlayers();
-        return;
-      }
-      applyUser(DB.current); renderAdminPlayers(); doSync(true);
-    };
-  });
-}
-function saveAdmin(){
-  const num = (id, def)=>{ const v = parseFloat(document.getElementById(id).value); return isFinite(v) ? v : def; };
-  const c = JSON.parse(JSON.stringify(CFG));
-  c.brand = (document.getElementById('a_brand').value || 'SLOT').slice(0,24);
-  c.sub   = document.getElementById('a_sub').value.slice(0,48);
-  c.bet   = Math.max(1, Math.round(num('a_bet', 3)));
-  c.bigPay = Math.max(0, Math.round(num('a_bigPay', 252)));
-  c.regPay = Math.max(0, Math.round(num('a_regPay', 96)));
-  c.speed  = Math.min(200, Math.max(4, num('a_speed', 28)));
-  [1,2,3,4,5,6].forEach(n=>{
-    c.settings[n] = {big: Math.max(1, num('a_big'+n, 273)), reg: Math.max(1, num('a_reg'+n, 439))};
-  });
-  c.small = SMALL_SYMS.map(sym=>[sym, Math.max(1, num('a_sd_'+sym, 1000))]);
-  c.pay = {};
-  SMALL_SYMS.filter(s=>s!=='REP').forEach(sym=>{ c.pay[sym] = Math.max(0, Math.round(num('a_sp_'+sym, 0))); });
-  const strips = [0,1,2].map(i=> document.getElementById('a_strip'+i).value.split(/[,\s]+/)
-      .map(t=>t.trim().toUpperCase()).filter(t=>ORDER.indexOf(t)>=0));
-  c.strips = (strips.every(a=>a.length>=3) && strips[0].length===strips[1].length && strips[1].length===strips[2].length)
-    ? strips : null;
-  c.gm = {base: Math.max(0, num('a_gmBase',10))/100, step: Math.max(0, num('a_gmStep',5))/100, max: Math.max(0, num('a_gmMax',60))/100};
-  c.startBank = Math.max(0, Math.round(num('a_startBank', 0)));
-  c.lendUnit  = Math.max(1, Math.round(num('a_lendUnit', 50)));
-  c.setting   = Math.min(6, Math.max(1, +document.getElementById('a_setting').value || 1));
-  c.settingUI = document.getElementById('a_settingUI').value;
-  c.showOdds  = document.getElementById('a_showOdds').value === '1';
-  const asst = document.getElementById('a_assist').value;
-  c.forceAssist = asst === 'on' ? true : asst === 'off' ? false : null;
-  c.allowImageUpload = document.getElementById('a_allowImg').value === '1';
-  c.sync = {enabled: document.getElementById('a_syncOn').value === '1',
-            url: document.getElementById('a_syncUrl').value.trim(),
-            room: document.getElementById('a_syncRoom').value.trim(),
-            pass: document.getElementById('a_syncPass').value};
-  CFG = c; saveCfg(); applyCfg();
-
-  document.getElementById('aPlayers').querySelectorAll('input').forEach(inp=>{
-    const u = DB.users[inp.dataset.id]; if(!u) return;
-    if(inp.dataset.f === 'name') u.name = (inp.value||u.name).slice(0,16);
-    else u[inp.dataset.f] = Math.max(0, Math.round(+inp.value)||0);
-    u.updatedAt = now();
-  });
-  applyUser(DB.current);
-  initSync(); doSync(true);
-  setMsg('管理者設定を保存しました', true);
-  const bar = document.getElementById('aSave');
-  bar.textContent = '保存しました'; setTimeout(()=>{ bar.textContent = '設定を保存して反映'; }, 1400);
-  renderAdminPlayers();
-}
-function exportCfg(){
-  const blob = new Blob([JSON.stringify(CFG, null, 2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'slot-config.json'; a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
-}
-document.getElementById('cfgIn').addEventListener('change', e=>{
-  const f = e.target.files[0]; if(!f) return;
-  const fr = new FileReader();
-  fr.onload = ()=>{
-    try{
-      const sync = CFG.sync;
-      CFG = mergeCfg(DEFAULT_CFG, JSON.parse(fr.result));
-      CFG.sync = sync; saveCfg(); applyCfg(); update(); openAdmin();
-    }catch(err){ alert('読み込めませんでした: ' + err.message); }
-  };
-  fr.readAsText(f);
-  e.target.value = '';
-});
-
-/* =========================================================
-   免責事項
-   ========================================================= */
-const AGREE_KEY = 'slotAgreed_v1';
-const TERMS_HTML =
-  '<div class="calc" style="line-height:1.9">'+
-  '本アプリは<b style="float:none">遊技機の挙動を模した娯楽目的のシミュレーター</b>です。<br>'+
-  '・実在の遊技機、メーカー、商品、団体とは一切関係がありません。<br>'+
-  '・メダル・持ち球・借金・金利はすべてゲーム内の架空の数値です。現金その他の財物と交換することはできず、現実の貸借契約でもありません。<br>'+
-  '・実際の金銭や財物を賭ける用途には使用しないでください。<br>'+
-  '・18歳以上の方を対象としています。<br>'+
-  '・本アプリはMITライセンスで提供され、無保証です。作者は本アプリの利用によって生じた損害について責任を負いません。'+
-  '</div>'+
-  '<div class="note">ギャンブル等でお困りのときは、お住まいの都道府県・政令指定都市の精神保健福祉センターにご相談ください。</div>';
-function initLegal(){
-  document.getElementById('lkTerms').onclick = e=>{
-    e.preventDefault();
-    openModal('免責事項・ライセンス', TERMS_HTML, null);
-  };
-  if(LS.get(AGREE_KEY)) return;
-  openModal('ご利用にあたって', TERMS_HTML,
-    ()=>{ try{ LS.set(AGREE_KEY, '1'); }catch(e){} closeModal(); }, '同意して始める');
-}
-
-/* =========================================================
-   起動
-   ========================================================= */
-loadCfg(); applyCfg();
-buildStrips(); measureCell(); initUsers(); update();
-window.addEventListener('load', measureCell);
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(measureCell);
-initSync(); initLegal();
-requestAnimationFrame(loop);
+(async function boot(){
+  let saved=null;
+  try{ saved = JSON.parse(localStorage.getItem(ROOM_KEY)); }catch(e){}
+  if(saved && saved.id){
+    document.getElementById('jUrl').value = saved.url || '';
+    document.getElementById('jId').value  = saved.id;
+    if(saved.mode==='solo'){ roomSolo(); return; }
+    try{
+      await roomJoin(saved.url||'', saved.id, saved.pass||'');
+      setMsg('ルーム「'+ROOM.id+'」に再接続しました');
+      return;
+    }catch(e){
+      gErr('jErr','前回のルームに接続できませんでした：'+e.message);
+    }
+  }
+  document.getElementById('gate').hidden = false;
+})();
 </script>
 </body>
 </html>
